@@ -716,9 +716,8 @@ function doRegister(){
   const income   = parseFloat(document.getElementById('reg-income').value) || 0
   const expenses = parseFloat(document.getElementById('reg-expenses').value) || 0
 
-  if(!name || !email || !pass){ showToast('Rellena todos los campos'); return }
+  if(!name || !email || !pass){ showToast('Rellena nombre, email y contraseña'); return }
   if(pass.length < 6){ showToast('La contraseña debe tener mínimo 6 caracteres'); return }
-  if(!income){ showToast('Indica tus ingresos aproximados'); return }
 
   user = { name, email, password: btoa(pass), mode: regMode, income, expenses, plan: 'free', createdAt: Date.now() }
   saveUser()
