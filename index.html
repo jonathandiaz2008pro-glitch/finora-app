@@ -940,12 +940,10 @@ async function doLogin(){
   if(!email || !pass){ showToast('Rellena email y contraseña'); return }
 
   if(sb){
-    const btn = document.querySelector('#tab-login .btn-save')
-    btn.textContent = 'Entrando...'
-    btn.disabled = true
+    const btn = document.querySelector('#tab-login .btn-primary')
+    if(btn){ btn.textContent = 'Entrando...'; btn.disabled = true }
     const { data, error } = await sb.auth.signInWithPassword({ email, password: pass })
-    btn.textContent = 'Iniciar sesión'
-    btn.disabled = false
+    if(btn){ btn.textContent = 'Entrar'; btn.disabled = false }
     if(error){ showToast('Email o contraseña incorrectos'); return }
     const { data: profile } = await sb.from('profiles').select('*').eq('id', data.user.id).single()
     if(!profile){ showToast('Perfil no encontrado'); return }
