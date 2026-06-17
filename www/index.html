@@ -1072,7 +1072,7 @@ function renderTxList(){
   const makeTx = t => `
     <div class="tx-item">
       <div class="tx-icon ${t.type}">${t.type==='ingreso'?svgIn:svgOut}</div>
-      <div class="tx-info"><div class="tx-name">${t.desc}</div><div class="tx-cat">${t.cat} · ${t.date}</div></div>
+      <div class="tx-info"><div class="tx-name">${t.description||t.desc||'Sin descripción'}</div><div class="tx-cat">${t.cat} · ${t.date}</div></div>
       <div class="tx-amount ${t.type==='ingreso'?'pos':'neg'}">${t.type==='ingreso'?'+':'−'}${parseFloat(t.amount).toLocaleString('es-ES')} €</div>
     </div>`
 
@@ -1230,7 +1230,7 @@ async function saveTransaction(){
       user_id: user.id,
       type: txType,
       amount,
-      desc,
+      description: desc,
       cat,
       date: today
     }).select().single()
