@@ -766,8 +766,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 const SUPABASE_URL  = 'TU_SUPABASE_URL'
 const SUPABASE_ANON = 'TU_SUPABASE_ANON_KEY'
 
-// 👉 Tu usuario de PayPal.me (sin https://)
-const PAYPAL_ME = 'TU_USUARIO_PAYPAL'
+// Email de PayPal donde recibes los pagos
+const PAYPAL_EMAIL = 'jonathandiaz2008pro@gmail.com'
 
 let sb = null
 try {
@@ -1251,14 +1251,10 @@ function selectPlan(p){
   const labels  = { pro: 'Finora Pro', financiero: 'Finora Financiero' }
   const amount  = amounts[p]
   const label   = labels[p]
-  if(PAYPAL_ME === 'TU_USUARIO_PAYPAL'){
-    showToast('PayPal no configurado aún')
-    return
-  }
-  // Abre PayPal.me con el importe exacto (IVA incluido)
-  const url = `https://www.paypal.com/paypalme/${PAYPAL_ME}/${amount}EUR`
+  // Link de pago directo PayPal con email del vendedor
+  const url = `https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=${encodeURIComponent(PAYPAL_EMAIL)}&amount=${amount}&currency_code=EUR&item_name=${encodeURIComponent('Finora ' + label)}&no_shipping=1&return=${encodeURIComponent(location.href)}`
   window.open(url, '_blank')
-  showToast(`Pago de ${amount} € · Activa tu plan en 24h`)
+  showToast(`Redirigiendo a PayPal · ${amount} € (IVA incl.)`)
 }
 
 // ─── TOAST ────────────────────────────────────────────────
