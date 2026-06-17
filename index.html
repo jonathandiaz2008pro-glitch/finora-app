@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0a">
+<title>Finora</title>
+<link rel="manifest" href="manifest.json">
+<script src="https://js.puter.com/v2/"></script>
+<style>
+:root{
+  --bg:#f5f5f7;
+  --surface:#ffffff;
+  --surface2:#fafafa;
+  --text:#0a0a0a;
+  --text2:#6b7280;
+  --text3:#9ca3af;
+  --border:#e5e7eb;
+  --border2:#f3f4f6;
+  --brand:#0a0a0a;
+  --brand-accent:#2563eb;
+  --green:#059669;
+  --green-bg:#ecfdf5;
+  --red:#dc2626;
+  --red-bg:#fef2f2;
+  --amber:#d97706;
+  --amber-bg:#fffbeb;
+  --r:16px;
+  --safe-top:env(safe-area-inset-top);
+  --safe-bot:env(safe-area-inset-bottom);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif;color:var(--text)}
+
+/* SPLASH */
+#splash{position:fixed;inset:0;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:9999}
+.splash-logo{width:72px;height:72px;background:#fff;border-radius:20px;display:flex;align-items:center;justify-content:center}
+.splash-logo svg{width:40px;height:40px}
+.splash-name{font-size:28px;font-weight:700;color:#fff;letter-spacing:-0.5px}
+.splash-sub{font-size:13px;color:#6b7280;letter-spacing:0.2px}
+.splash-progress{position:absolute;bottom:calc(48px + var(--safe-bot));left:50%;transform:translateX(-50%);width:40px;height:2px;background:#1f1f1f;border-radius:1px;overflow:hidden}
+.splash-progress::after{content:'';display:block;height:100%;background:#fff;border-radius:1px;animation:load 1.8s ease forwards}
+@keyframes load{from{width:0}to{width:100%}}
+
+/* APP */
+#app{display:flex;flex-direction:column;height:100%;background:var(--bg);opacity:0;transition:opacity .35s}
+#app.on{opacity:1}
+
+/* STATUS SPACE */
+.status-space{height:var(--safe-top);min-height:44px;background:#0a0a0a;flex-shrink:0}
+
+/* TOPBAR */
+.topbar{background:#0a0a0a;padding:4px 20px 20px;flex-shrink:0}
+.topbar-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.topbar-greeting{font-size:13px;color:#6b7280;font-weight:400}
+.topbar-avatar{width:32px;height:32px;border-radius:50%;background:#1f1f1f;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#d1d5db;border:1px solid #2d2d2d}
+.topbar-label{font-size:11px;color:#4b5563;font-weight:500;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:6px}
+.topbar-balance{font-size:40px;font-weight:700;color:#fff;line-height:1;letter-spacing:-1.5px;margin-bottom:6px}
+.topbar-change{font-size:12px;color:#059669;font-weight:500;display:flex;align-items:center;gap:4px}
+.topbar-change.dn{color:#dc2626}
+
+/* SCROLL */
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
+.scroll::-webkit-scrollbar{display:none}
+.scroll-inner{padding:16px 16px calc(88px + var(--safe-bot))}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:calc(60px + var(--safe-bot));padding-bottom:var(--safe-bot);background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:flex-start;z-index:100}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:10px;border:none;background:none;cursor:pointer;font-family:inherit;transition:all .15s}
+.nav-btn svg{width:22px;height:22px;stroke:#9ca3af;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:stroke .15s}
+.nav-btn .nb-label{font-size:9.5px;font-weight:500;color:#9ca3af;letter-spacing:0.2px;transition:color .15s}
+.nav-btn.active svg{stroke:var(--text)}
+.nav-btn.active .nb-label{color:var(--text);font-weight:600}
+
+/* SECTIONS */
+.sec{display:none}.sec.on{display:block}
+
+/* CARD */
+.card{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);margin-bottom:12px;overflow:hidden}
+.card-pad{padding:16px}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-title{font-size:14px;font-weight:600;color:var(--text)}
+.card-link{font-size:12px;font-weight:500;color:var(--brand-accent)}
+
+/* SECTION HEADER */
+.sec-head{margin-bottom:16px}
+.sec-head h2{font-size:22px;font-weight:700;letter-spacing:-0.5px;color:var(--text)}
+.sec-head p{font-size:13px;color:var(--text2);margin-top:2px}
+
+/* STAT GRID */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.stat-card{background:var(--surface);border-radius:14px;border:1px solid var(--border);padding:14px}
+.stat-label{font-size:11px;color:var(--text2);font-weight:500;margin-bottom:8px;letter-spacing:0.2px}
+.stat-value{font-size:22px;font-weight:700;letter-spacing:-0.5px;line-height:1.1}
+.stat-change{font-size:11px;font-weight:500;margin-top:5px}
+.pos{color:var(--green)}.neg{color:var(--red)}.warn{color:var(--amber)}
+
+/* ALERT BANNER */
+.alert{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;margin-bottom:12px;border:1px solid}
+.alert-warn{background:var(--amber-bg);border-color:#fde68a}
+.alert-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.alert-icon svg{width:18px;height:18px;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.alert-warn .alert-icon{background:#fef3c7}
+.alert-warn .alert-icon svg{stroke:#d97706}
+.alert-text{flex:1;min-width:0}
+.alert-text strong{font-size:13px;font-weight:600;color:var(--text);display:block}
+.alert-text span{font-size:11px;color:var(--text2)}
+.alert-action{font-size:12px;font-weight:600;color:var(--brand-accent);flex-shrink:0;cursor:pointer}
+
+/* AI WIDGET */
+.ai-widget{background:#0a0a0a;border-radius:var(--r);padding:16px;margin-bottom:12px}
+.ai-widget-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.ai-badge{display:flex;align-items:center;gap:6px}
+.ai-dot{width:6px;height:6px;background:#10b981;border-radius:50%;animation:pulse 2.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.ai-badge span{font-size:12px;font-weight:600;color:#fff}
+.ai-plan-tag{font-size:10px;color:#4b5563;background:#1a1a1a;padding:3px 8px;border-radius:6px;font-weight:500}
+.ai-message{background:#141414;border-radius:10px;padding:12px;font-size:13px;color:#d1d5db;line-height:1.6;margin-bottom:12px}
+.ai-message strong{color:#fff}
+.ai-input-row{display:flex;gap:8px}
+.ai-input{flex:1;background:#141414;border:1px solid #2d2d2d;border-radius:10px;padding:10px 14px;font-size:13px;color:#fff;outline:none;font-family:inherit}
+.ai-input::placeholder{color:#4b5563}
+.ai-input:focus{border-color:#3d3d3d}
+.ai-send{background:#fff;color:#0a0a0a;border:none;border-radius:10px;width:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:opacity .15s}
+.ai-send:active{opacity:.7}
+.ai-send svg{width:16px;height:16px;stroke:#0a0a0a;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* TRANSACTION LIST */
+.tx-item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border2)}
+.tx-item:last-child{border:none}
+.tx-icon{width:38px;height:38px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tx-icon svg{width:18px;height:18px;stroke:#6b7280;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tx-icon.income{background:var(--green-bg)}
+.tx-icon.income svg{stroke:var(--green)}
+.tx-icon.expense{background:#f9fafb}
+.tx-info{flex:1;min-width:0}
+.tx-name{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-cat{font-size:11px;color:var(--text2);margin-top:1px}
+.tx-amount{font-size:14px;font-weight:600;flex-shrink:0}
+.tx-amount.pos{color:var(--green)}
+.tx-amount.neg{color:var(--text)}
+
+/* CHAT */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 150px)}
+.chat-header{background:var(--surface);padding:16px 16px 12px;border-bottom:1px solid var(--border)}
+.chat-header h2{font-size:18px;font-weight:700;letter-spacing:-0.3px}
+.chat-header p{font-size:12px;color:var(--text2);margin-top:2px}
+.chat-suggestions{display:flex;gap:8px;overflow-x:auto;padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);-webkit-overflow-scrolling:touch}
+.chat-suggestions::-webkit-scrollbar{display:none}
+.sugg-chip{background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:7px 14px;font-size:12px;white-space:nowrap;cursor:pointer;color:var(--text);font-family:inherit;font-weight:500;flex-shrink:0;transition:background .1s}
+.sugg-chip:active{background:var(--border)}
+.chat-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
+.chat-msgs::-webkit-scrollbar{display:none}
+.bubble{padding:11px 14px;border-radius:16px;font-size:13px;line-height:1.6;max-width:84%}
+.bubble.ai{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px 16px 16px 16px;align-self:flex-start}
+.bubble.user{background:#0a0a0a;color:#fff;border-radius:16px 16px 4px 16px;align-self:flex-end}
+.chat-bar{padding:10px 14px;background:var(--surface);border-top:1px solid var(--border);display:flex;gap:8px;padding-bottom:calc(10px + var(--safe-bot))}
+.chat-bar-input{flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:24px;padding:10px 16px;font-size:14px;color:var(--text);outline:none;font-family:inherit}
+.chat-bar-input:focus{border-color:#9ca3af}
+.chat-bar-send{background:#0a0a0a;color:#fff;border:none;border-radius:50%;width:42px;height:42px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.chat-bar-send:active{background:#1f1f1f}
+.chat-bar-send svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+/* FISCAL */
+.deadline-item{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--border2)}
+.deadline-item:last-child{border:none}
+.deadline-badge{font-size:10px;font-weight:700;padding:4px 8px;border-radius:6px;flex-shrink:0;min-width:60px;text-align:center}
+.badge-red{background:var(--red-bg);color:var(--red)}
+.badge-amber{background:var(--amber-bg);color:var(--amber)}
+.badge-green{background:var(--green-bg);color:var(--green)}
+.deadline-info{flex:1;min-width:0}
+.deadline-name{font-size:13px;font-weight:500;color:var(--text)}
+.deadline-sub{font-size:11px;color:var(--text2);margin-top:1px}
+.deadline-amount{font-size:14px;font-weight:600;flex-shrink:0}
+
+/* DEDUCIBLE TABLE */
+.deducible-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border2)}
+.deducible-row:last-child{border:none}
+.deducible-name{flex:1;font-size:13px;color:var(--text)}
+.deducible-pct{font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px}
+.pct-full{background:var(--green-bg);color:var(--green)}
+.pct-half{background:var(--amber-bg);color:var(--amber)}
+
+/* PROGRESS */
+.prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden;margin:8px 0 3px}
+.prog-fill{height:100%;border-radius:2px}
+
+/* GOAL ITEM */
+.goal-item{margin-bottom:16px}
+.goal-item:last-child{margin:0}
+.goal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
+.goal-name{font-size:13px;font-weight:500}
+.goal-pct{font-size:11px;font-weight:600;color:var(--brand-accent)}
+.goal-sub{font-size:11px;color:var(--text2)}
+
+/* PREMIUM */
+.premium-card{background:#0a0a0a;border-radius:var(--r);padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:12px}
+.premium-card-text h3{font-size:14px;font-weight:600;color:#fff;margin-bottom:2px}
+.premium-card-text p{font-size:11px;color:#6b7280}
+.premium-card-btn{background:#fff;color:#0a0a0a;border:none;padding:9px 16px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;margin-left:auto;font-family:inherit}
+
+/* EDUCATION */
+.edu-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border2);cursor:pointer}
+.edu-item:last-child{border:none}
+.edu-item:active{background:var(--bg)}
+.edu-ico-wrap{width:38px;height:38px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.edu-ico-wrap svg{width:18px;height:18px;stroke:#6b7280;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.edu-info{flex:1;min-width:0}
+.edu-title{font-size:13px;font-weight:500;color:var(--text)}
+.edu-meta{display:flex;gap:6px;align-items:center;margin-top:3px}
+.edu-time{font-size:11px;color:var(--text2)}
+.edu-chip{font-size:9px;font-weight:700;padding:2px 7px;border-radius:5px;letter-spacing:0.3px}
+.chip-basic{background:var(--green-bg);color:var(--green)}
+.chip-mid{background:#eff6ff;color:var(--brand-accent)}
+.edu-arrow{color:var(--border);flex-shrink:0}
+.edu-arrow svg{width:14px;height:14px;stroke:#d1d5db;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* SETTINGS */
+.set-row{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border2);cursor:pointer}
+.set-row:last-child{border:none}
+.set-icon-wrap{width:36px;height:36px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.set-icon-wrap svg{width:17px;height:17px;stroke:#6b7280;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.set-info{flex:1}
+.set-label{font-size:14px;font-weight:500;color:var(--text)}
+.set-sub{font-size:11px;color:var(--text2);margin-top:1px}
+.set-arrow svg{width:14px;height:14px;stroke:#d1d5db;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* TYPING */
+.typing-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#d1d5db;animation:td .9s infinite;margin:0 2px}
+.typing-dot:nth-child(2){animation-delay:.15s}
+.typing-dot:nth-child(3){animation-delay:.3s}
+@keyframes td{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)}}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(78px + var(--safe-bot));left:50%;transform:translateX(-50%) translateY(12px);background:#0a0a0a;color:#fff;padding:11px 20px;border-radius:24px;font-size:13px;font-weight:500;z-index:500;opacity:0;transition:all .25s;white-space:nowrap;pointer-events:none}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* FAB */
+.fab{position:fixed;bottom:calc(74px + var(--safe-bot));right:16px;width:50px;height:50px;background:#0a0a0a;border-radius:14px;display:none;align-items:center;justify-content:center;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:99;transition:transform .1s}
+.fab:active{transform:scale(.94)}
+.fab svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+/* MODAL */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:flex-end}
+.modal.on{display:flex}
+.modal-sheet{background:var(--surface);border-radius:24px 24px 0 0;width:100%;padding:20px 20px calc(24px + var(--safe-bot));max-height:90vh;overflow-y:auto}
+.sheet-handle{width:36px;height:3px;background:var(--border);border-radius:2px;margin:0 auto 20px}
+.sheet-title{font-size:18px;font-weight:700;letter-spacing:-0.3px;margin-bottom:18px}
+.form-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;display:block}
+.form-input{width:100%;border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;font-size:15px;color:var(--text);outline:none;margin-bottom:14px;font-family:inherit;background:var(--surface);-webkit-appearance:none;transition:border-color .15s}
+.form-input:focus{border-color:#6b7280}
+.type-toggle{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:16px;background:var(--bg);border-radius:12px;padding:4px}
+.type-btn{padding:10px;border-radius:9px;border:none;background:transparent;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;color:var(--text2)}
+.type-btn.active{background:var(--surface);color:var(--text);font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.btn-save{width:100%;background:#0a0a0a;color:#fff;border:none;border-radius:14px;padding:16px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:-0.2px}
+.btn-save:active{background:#1f1f1f}
+
+/* DIVIDER */
+.divider{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.6px;margin:16px 0 8px}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="splash-logo">
+    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <text x="4" y="33" font-size="34" font-weight="800" fill="#0a0a0a" font-family="-apple-system,BlinkMacSystemFont,sans-serif">F</text>
+    </svg>
+  </div>
+  <div class="splash-name">Finora</div>
+  <div class="splash-sub">Tu asesor financiero con IA</div>
+  <div class="splash-progress"></div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="status-space"></div>
+
+  <!-- TOPBAR -->
+  <div class="topbar" id="main-topbar">
+    <div class="topbar-row">
+      <div class="topbar-greeting" id="tb-greeting">Buenos días, María</div>
+      <div class="topbar-avatar">MG</div>
+    </div>
+    <div class="topbar-label">Beneficio neto · <span id="tb-month"></span></div>
+    <div class="topbar-balance">2.353 €</div>
+    <div class="topbar-change">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 9V3M6 3L3 6M6 3L9 6" stroke="#059669" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      +15% respecto a mayo
+    </div>
+  </div>
+
+  <!-- SCROLL -->
+  <div class="scroll" id="main-scroll">
+    <div class="scroll-inner">
+
+      <!-- INICIO -->
+      <div class="sec on" id="sec-inicio">
+
+        <div class="alert alert-warn">
+          <div class="alert-icon">
+            <svg viewBox="0 0 18 18"><path d="M9 2L1.5 15.5h15L9 2z"/><path d="M9 7v3.5M9 13h.01"/></svg>
+          </div>
+          <div class="alert-text">
+            <strong>Modelo 303 · IVA Q2 — 23 días</strong>
+            <span>IVA estimado: 2.982 €</span>
+          </div>
+          <span class="alert-action" onclick="goTo('fiscal')">Ver →</span>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">Ingresos junio</div>
+            <div class="stat-value">4.200 €</div>
+            <div class="stat-change pos">+12% vs mayo</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Gastos junio</div>
+            <div class="stat-value">1.847 €</div>
+            <div class="stat-change neg">+8% vs mayo</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Ahorro total</div>
+            <div class="stat-value">8.420 €</div>
+            <div class="stat-change pos">+600 € este mes</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Tasa de ahorro</div>
+            <div class="stat-value">56%</div>
+            <div class="stat-change pos">Muy por encima de la media</div>
+          </div>
+        </div>
+
+        <!-- AI WIDGET -->
+        <div class="ai-widget">
+          <div class="ai-widget-header">
+            <div class="ai-badge">
+              <div class="ai-dot"></div>
+              <span>Finora IA</span>
+            </div>
+            <div class="ai-plan-tag">Plan gratuito</div>
+          </div>
+          <div class="ai-message" id="home-ai-bubble">
+            Este mes vas muy bien. Tu beneficio neto es <strong>2.353 €</strong>, un 15% mejor que mayo.<br><br>
+            Detecté un patrón: gastas 287 € en restaurantes, un 34% más que el mes anterior. Podrías recuperar <strong>107 € al mes</strong> ajustando ese gasto.
+          </div>
+          <div class="ai-input-row">
+            <input class="ai-input" id="home-inp" placeholder="Pregunta algo rápido..." onkeydown="if(event.key==='Enter')sendHomeMsg()">
+            <button class="ai-send" onclick="sendHomeMsg()">
+              <svg viewBox="0 0 16 16"><path d="M14 8H2M14 8l-5-5M14 8l-5 5"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- TRANSACTIONS -->
+        <div class="card card-pad">
+          <div class="card-head">
+            <div class="card-title">Últimos movimientos</div>
+            <span class="card-link" onclick="goTo('personal')">Ver todos</span>
+          </div>
+          <div class="tx-item">
+            <div class="tx-icon income"><svg viewBox="0 0 18 18"><rect x="2" y="3" width="14" height="11" rx="2"/><path d="M5 8h5M5 11h3"/></svg></div>
+            <div class="tx-info"><div class="tx-name">Empresa ABC</div><div class="tx-cat">Servicios · 15 jun</div></div>
+            <div class="tx-amount pos">+2.420 €</div>
+          </div>
+          <div class="tx-item">
+            <div class="tx-icon expense"><svg viewBox="0 0 18 18"><path d="M3 6h12M5 3h8M6 10h2M10 10h2M6 13h2M10 13h2"/><rect x="2" y="6" width="14" height="10" rx="1.5"/></svg></div>
+            <div class="tx-info"><div class="tx-name">Mercadona</div><div class="tx-cat">Alimentación · 14 jun</div></div>
+            <div class="tx-amount neg">−187 €</div>
+          </div>
+          <div class="tx-item">
+            <div class="tx-icon expense"><svg viewBox="0 0 18 18"><rect x="3" y="3" width="12" height="12" rx="2"/><path d="M7 6h4M7 9h4M7 12h2"/></svg></div>
+            <div class="tx-info"><div class="tx-name">Adobe Creative</div><div class="tx-cat">Software · Deducible · 12 jun</div></div>
+            <div class="tx-amount neg">−59 €</div>
+          </div>
+          <div class="tx-item">
+            <div class="tx-icon income"><svg viewBox="0 0 18 18"><rect x="2" y="3" width="14" height="11" rx="2"/><path d="M5 8h5M5 11h3"/></svg></div>
+            <div class="tx-info"><div class="tx-name">Cliente XYZ</div><div class="tx-cat">Consultoría · 10 jun</div></div>
+            <div class="tx-amount pos">+1.780 €</div>
+          </div>
+        </div>
+
+      </div><!-- /inicio -->
+
+      <!-- ASESOR IA -->
+      <div class="sec" id="sec-asesor" style="padding:0;margin:-16px">
+        <div class="chat-wrap">
+          <div class="chat-header">
+            <h2>Asesor IA</h2>
+            <p>Conoce toda tu situación financiera</p>
+          </div>
+          <div class="chat-suggestions">
+            <button class="sugg-chip" onclick="askAI(this.textContent)">¿En qué gasto más?</button>
+            <button class="sugg-chip" onclick="askAI(this.textContent)">¿Cuánto IVA pago?</button>
+            <button class="sugg-chip" onclick="askAI(this.textContent)">¿Puedo comprar una moto?</button>
+            <button class="sugg-chip" onclick="askAI(this.textContent)">¿Cómo ahorrar más?</button>
+            <button class="sugg-chip" onclick="askAI(this.textContent)">¿Qué gastos deduzco?</button>
+          </div>
+          <div class="chat-msgs" id="chat-msgs">
+            <div class="bubble ai">Hola, María. Soy tu asesor financiero.<br><br>He analizado tus <strong>147 transacciones</strong> de los últimos meses. Este mes llevas un beneficio neto de <strong>2.353 €</strong>, un 15% mejor que mayo.<br><br>Hay tres cosas que me parecen relevantes:<br>· Restaurantes +34% — puedes recuperar 107 €/mes<br>· Dos suscripciones sin uso detectadas (28 €/mes)<br>· IVA Q2 vence en 23 días — 2.982 €<br><br>¿Por dónde quieres empezar?</div>
+          </div>
+          <div class="chat-bar">
+            <input class="chat-bar-input" id="chat-inp" placeholder="Pregunta lo que quieras..." onkeydown="if(event.key==='Enter')sendChat()">
+            <button class="chat-bar-send" onclick="sendChat()">
+              <svg viewBox="0 0 16 16"><path d="M14 8H2M14 8l-5-5M14 8l-5 5"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- FISCAL -->
+      <div class="sec" id="sec-fiscal">
+        <div class="sec-head">
+          <h2>Centro Fiscal</h2>
+          <p>Impuestos sin sorpresas · 2026</p>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">IVA Q2 estimado</div>
+            <div class="stat-value neg">2.982 €</div>
+            <div class="stat-change warn">Vence en 23 días</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">IRPF est. 2026</div>
+            <div class="stat-value">7.252 €</div>
+            <div class="stat-change pos">4.826 € retenidos</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Gastos deducibles</div>
+            <div class="stat-value">4.820 €</div>
+            <div class="stat-change pos">Ahorro fiscal: 964 €</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Facturación 2026</div>
+            <div class="stat-value">48.600 €</div>
+            <div class="stat-change pos">+18% vs 2025</div>
+          </div>
+        </div>
+
+        <div class="card card-pad">
+          <div class="card-head"><div class="card-title">Próximas obligaciones</div></div>
+          <div class="deadline-item">
+            <div class="deadline-badge badge-red">23 días</div>
+            <div class="deadline-info">
+              <div class="deadline-name">Modelo 303 — IVA Q2</div>
+              <div class="deadline-sub">21% sobre 14.200 € facturados</div>
+            </div>
+            <div class="deadline-amount neg">2.982 €</div>
+          </div>
+          <div class="deadline-item">
+            <div class="deadline-badge badge-amber">51 días</div>
+            <div class="deadline-info">
+              <div class="deadline-name">Modelo 130 — IRPF Q2</div>
+              <div class="deadline-sub">20% sobre beneficio Q2</div>
+            </div>
+            <div class="deadline-amount warn">1.812 €</div>
+          </div>
+          <div class="deadline-item">
+            <div class="deadline-badge badge-green">Pagado</div>
+            <div class="deadline-info">
+              <div class="deadline-name">Modelo 303 — IVA Q1</div>
+              <div class="deadline-sub">Presentado el 18/04/2026</div>
+            </div>
+            <div class="deadline-amount pos">2.310 €</div>
+          </div>
+        </div>
+
+        <div class="card card-pad">
+          <div class="card-head"><div class="card-title">Gastos deducibles</div></div>
+          <div class="deducible-row"><div class="deducible-name">Cuota autónomos (SS)</div><span class="deducible-pct pct-full">100%</span></div>
+          <div class="deducible-row"><div class="deducible-name">Software y suscripciones</div><span class="deducible-pct pct-full">100%</span></div>
+          <div class="deducible-row"><div class="deducible-name">Gestoría y asesoría</div><span class="deducible-pct pct-full">100%</span></div>
+          <div class="deducible-row"><div class="deducible-name">Teléfono e internet</div><span class="deducible-pct pct-half">50%</span></div>
+          <div class="deducible-row"><div class="deducible-name">Vehículo (uso mixto)</div><span class="deducible-pct pct-half">50%</span></div>
+          <div class="deducible-row"><div class="deducible-name">Material de oficina</div><span class="deducible-pct pct-full">100%</span></div>
+          <div style="padding-top:12px;font-size:11px;color:var(--text2)">Información orientativa. Consulta con tu asesor fiscal.</div>
+        </div>
+      </div>
+
+      <!-- FINANZAS -->
+      <div class="sec" id="sec-personal">
+        <div class="sec-head">
+          <h2>Mis Finanzas</h2>
+          <p>Control total de tus movimientos</p>
+        </div>
+
+        <div class="premium-card">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#1a1a1a"/><path d="M16 8l2.5 5 5.5.8-4 3.9.9 5.3L16 20.5 11.1 23l.9-5.3-4-3.9 5.5-.8L16 8z" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          <div class="premium-card-text">
+            <h3>Upgrade a Premium</h3>
+            <p>IA ilimitada · Voz · Exportar PDF</p>
+          </div>
+          <button class="premium-card-btn" onclick="showToast('Redirigiendo a pago...')">12 €/mes</button>
+        </div>
+
+        <div class="card card-pad">
+          <div class="card-head"><div class="card-title">Objetivos de ahorro</div></div>
+          <div class="goal-item">
+            <div class="goal-header">
+              <div class="goal-name">Fondo de emergencia</div>
+              <div class="goal-pct">100%</div>
+            </div>
+            <div class="goal-sub">8.420 / 6.000 € — Completado</div>
+            <div class="prog-bar"><div class="prog-fill" style="width:100%;background:var(--green)"></div></div>
+          </div>
+          <div class="goal-item">
+            <div class="goal-header">
+              <div class="goal-name">Vacaciones Japón</div>
+              <div class="goal-pct">41%</div>
+            </div>
+            <div class="goal-sub">1.240 / 3.000 € — ~3 meses</div>
+            <div class="prog-bar"><div class="prog-fill" style="width:41%;background:var(--brand-accent)"></div></div>
+          </div>
+          <div class="goal-item" style="margin-bottom:0">
+            <div class="goal-header">
+              <div class="goal-name">Nuevo ordenador</div>
+              <div class="goal-pct">32%</div>
+            </div>
+            <div class="goal-sub">800 / 2.500 € — ~4 meses</div>
+            <div class="prog-bar"><div class="prog-fill" style="width:32%;background:#7c3aed"></div></div>
+          </div>
+        </div>
+
+        <div class="card card-pad">
+          <div class="card-head"><div class="card-title">Movimientos</div></div>
+          <div id="tx-list">
+            <div class="tx-item">
+              <div class="tx-icon income"><svg viewBox="0 0 18 18"><rect x="2" y="3" width="14" height="11" rx="2"/><path d="M5 8h5M5 11h3"/></svg></div>
+              <div class="tx-info"><div class="tx-name">Empresa ABC</div><div class="tx-cat">Servicios · 15 jun</div></div>
+              <div class="tx-amount pos">+2.420 €</div>
+            </div>
+            <div class="tx-item">
+              <div class="tx-icon expense"><svg viewBox="0 0 18 18"><path d="M3 6h12M5 3h8M6 10h2M10 10h2M6 13h2M10 13h2"/><rect x="2" y="6" width="14" height="10" rx="1.5"/></svg></div>
+              <div class="tx-info"><div class="tx-name">Mercadona</div><div class="tx-cat">Alimentación · 14 jun</div></div>
+              <div class="tx-amount neg">−187 €</div>
+            </div>
+            <div class="tx-item">
+              <div class="tx-icon expense"><svg viewBox="0 0 18 18"><rect x="3" y="3" width="12" height="12" rx="2"/><path d="M7 6h4M7 9h4M7 12h2"/></svg></div>
+              <div class="tx-info"><div class="tx-name">Adobe Creative</div><div class="tx-cat">Software · 12 jun</div></div>
+              <div class="tx-amount neg">−59 €</div>
+            </div>
+            <div class="tx-item">
+              <div class="tx-icon income"><svg viewBox="0 0 18 18"><rect x="2" y="3" width="14" height="11" rx="2"/><path d="M5 8h5M5 11h3"/></svg></div>
+              <div class="tx-info"><div class="tx-name">Cliente XYZ</div><div class="tx-cat">Consultoría · 10 jun</div></div>
+              <div class="tx-amount pos">+1.780 €</div>
+            </div>
+            <div class="tx-item">
+              <div class="tx-icon expense"><svg viewBox="0 0 18 18"><path d="M15 8A7 7 0 1 1 8 1M8 5v3l2 2"/></svg></div>
+              <div class="tx-info"><div class="tx-name">Gasolina</div><div class="tx-cat">Transporte · 9 jun</div></div>
+              <div class="tx-amount neg">−85 €</div>
+            </div>
+            <div class="tx-item">
+              <div class="tx-icon expense"><svg viewBox="0 0 18 18"><path d="M3 6h12M5 3h8M6 10h2M10 10h2M6 13h2M10 13h2"/><rect x="2" y="6" width="14" height="10" rx="1.5"/></svg></div>
+              <div class="tx-info"><div class="tx-name">Restaurante La Mar</div><div class="tx-cat">Restaurantes · 8 jun</div></div>
+              <div class="tx-amount neg">−92 €</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- APRENDER -->
+      <div class="sec" id="sec-edu">
+        <div class="sec-head">
+          <h2>Aprender</h2>
+          <p>Educación financiera en sencillo</p>
+        </div>
+
+        <div class="ai-widget" style="margin-bottom:12px">
+          <div class="ai-widget-header">
+            <div class="ai-badge">
+              <div class="ai-dot"></div>
+              <span>Tienes dudas</span>
+            </div>
+          </div>
+          <div style="font-size:12px;color:#6b7280;margin-bottom:10px">Tu asesor IA puede explicarte cualquier concepto adaptado a tu situación real.</div>
+          <button onclick="goTo('asesor')" style="background:#fff;color:#0a0a0a;border:none;padding:9px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Hablar con el asesor</button>
+        </div>
+
+        <div class="divider">Para autónomos</div>
+        <div class="card">
+          <div class="edu-item" onclick="showToast('¿Qué gastos puede deducir un autónomo?')">
+            <div class="edu-ico-wrap"><svg viewBox="0 0 18 18"><rect x="3" y="2" width="12" height="14" rx="2"/><path d="M6 6h6M6 9h6M6 12h4"/></svg></div>
+            <div class="edu-info"><div class="edu-title">¿Qué gastos puede deducir un autónomo?</div><div class="edu-meta"><span class="edu-time">5 min</span><span class="edu-chip chip-basic">Básico</span></div></div>
+            <div class="edu-arrow"><svg viewBox="0 0 14 14"><path d="M5 3l4 4-4 4"/></svg></div>
+          </div>
+          <div class="edu-item" onclick="showToast('Guía completa del IVA para autónomos')">
+            <div class="edu-ico-wrap"><svg viewBox="0 0 18 18"><path d="M9 2L2 5v6c0 3.5 3 6 7 7 4-1 7-3.5 7-7V5L9 2z"/></svg></div>
+            <div class="edu-info"><div class="edu-title">Guía completa del IVA para autónomos</div><div class="edu-meta"><span class="edu-time">8 min</span><span class="edu-chip chip-basic">Básico</span></div></div>
+            <div class="edu-arrow"><svg viewBox="0 0 14 14"><path d="M5 3l4 4-4 4"/></svg></div>
+          </div>
+          <div class="edu-item" onclick="showToast('Modelo 303: paso a paso')">
+            <div class="edu-ico-wrap"><svg viewBox="0 0 18 18"><rect x="3" y="2" width="12" height="14" rx="2"/><path d="M6 6h6M6 9h6M6 12h4"/></svg></div>
+            <div class="edu-info"><div class="edu-title">Modelo 303: paso a paso</div><div class="edu-meta"><span class="edu-time">10 min</span><span class="edu-chip chip-mid">Intermedio</span></div></div>
+            <div class="edu-arrow"><svg viewBox="0 0 14 14"><path d="M5 3l4 4-4 4"/></svg></div>
+          </div>
+          <div class="edu-item" onclick="showToast('Cómo calcular tu IRPF como freelancer')">
+            <div class="edu-ico-wrap"><svg viewBox="0 0 18 18"><path d="M3 15l4-4 3 3 5-6"/><path d="M2 2h14v14"/></svg></div>
+            <div class="edu-info"><div class="edu-title">Cómo calcular tu IRPF como freelancer</div><div class="edu-meta"><span class="edu-time">6 min</span><span class="edu-chip chip-basic">Básico</span></div></div>
+            <div class="edu-arrow"><svg viewBox="0 0 14 14"><path d="M5 3l4 4-4 4"/></svg></div>
+          </div>
+        </div>
+
+        <div class="divider">Ahorro e inversión</div>
+        <div class="card">
+          <div class="edu-item" onclick="showToast('La regla del 50-30-20')">
+            <div class="edu-ico-wrap"><svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="7"/><path d="M9 5v4l3 3"/></svg></div>
+            <div class="edu-info"><div class="edu-title">La regla del 50-30-20</div><div class="edu-meta"><span class="edu-time">4 min</span><span class="edu-chip chip-basic">Básico</span></div></div>
+            <div class="edu-arrow"><svg viewBox="0 0 14 14"><path d="M5 3l4 4-4 4"/></svg></div>
+          </div>
+          <div class="edu-item" onclick="showToast('Fondo de emergencia: cuánto necesitas')">
+            <div class="edu-ico-wrap"><svg viewBox="0 0 18 18"><path d="M9 2L2 5v6c0 3.5 3 6 7 7 4-1 7-3.5 7-7V5L9 2z"/></svg></div>
+            <div class="edu-info"><div class="edu-title">Fondo de emergencia: cuánto necesitas</div><div class="edu-meta"><span class="edu-time">5 min</span><span class="edu-chip chip-basic">Básico</span></div></div>
+            <div class="edu-arrow"><svg viewBox="0 0 14 14"><path d="M5 3l4 4-4 4"/></svg></div>
+          </div>
+          <div class="edu-item" onclick="showToast('Fondos indexados: la guía definitiva')">
+            <div class="edu-ico-wrap"><svg viewBox="0 0 18 18"><path d="M3 15l4-4 3 3 5-6"/><path d="M2 2h14v14"/></svg></div>
+            <div class="edu-info"><div class="edu-title">Fondos indexados: la guía definitiva</div><div class="edu-meta"><span class="edu-time">9 min</span><span class="edu-chip chip-mid">Intermedio</span></div></div>
+            <div class="edu-arrow"><svg viewBox="0 0 14 14"><path d="M5 3l4 4-4 4"/></svg></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /scroll-inner -->
+  </div><!-- /scroll -->
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="goTo('inicio',this)">
+      <svg viewBox="0 0 22 22"><path d="M3 9.5L11 3l8 6.5V19a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><path d="M8 20v-8h6v8"/></svg>
+      <span class="nb-label">Inicio</span>
+    </button>
+    <button class="nav-btn" onclick="goTo('asesor',this)">
+      <svg viewBox="0 0 22 22"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span class="nb-label">IA</span>
+    </button>
+    <button class="nav-btn" onclick="goTo('fiscal',this)">
+      <svg viewBox="0 0 22 22"><rect x="3" y="4" width="16" height="16" rx="2"/><path d="M7 8h8M7 12h8M7 16h5"/></svg>
+      <span class="nb-label">Fiscal</span>
+    </button>
+    <button class="nav-btn" onclick="goTo('personal',this)">
+      <svg viewBox="0 0 22 22"><path d="M3 19V9.5L11 3l8 6.5V19"/><path d="M8 19v-6h6v6"/></svg>
+      <span class="nb-label">Finanzas</span>
+    </button>
+    <button class="nav-btn" onclick="goTo('edu',this)">
+      <svg viewBox="0 0 22 22"><path d="M4 19V9M18 19V9M2 9l9-6 9 6"/><path d="M8 19v-5h6v5"/></svg>
+      <span class="nb-label">Aprender</span>
+    </button>
+  </nav>
+</div><!-- /app -->
+
+<!-- FAB -->
+<button class="fab" id="fab" onclick="openModal()">
+  <svg viewBox="0 0 20 20"><path d="M10 4v12M4 10h12"/></svg>
+</button>
+
+<!-- ADD MODAL -->
+<div class="modal" id="add-modal" onclick="closeModalIfBg(event)">
+  <div class="modal-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Añadir movimiento</div>
+    <div class="type-toggle">
+      <button class="type-btn" id="btn-expense" onclick="selectType('expense')">Gasto</button>
+      <button class="type-btn active" id="btn-income" onclick="selectType('income')">Ingreso</button>
+    </div>
+    <label class="form-label">Cantidad (€)</label>
+    <input class="form-input" id="inp-amount" type="number" inputmode="decimal" placeholder="0,00">
+    <label class="form-label">Descripción</label>
+    <input class="form-input" id="inp-desc" placeholder="¿De qué es este movimiento?">
+    <label class="form-label">Categoría</label>
+    <select class="form-input" id="inp-cat">
+      <option>Alimentación</option><option>Transporte</option><option>Software</option>
+      <option>Servicios profesionales</option><option>Salud</option><option>Ocio</option>
+      <option>Formación</option><option>Gestoría</option><option>Otros</option>
+    </select>
+    <label class="form-label">Fecha</label>
+    <input class="form-input" id="inp-date" type="date">
+    <button class="btn-save" onclick="saveTransaction()">Guardar</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// NAV
+const SECS = ['inicio','asesor','fiscal','personal','edu']
+let currentSec = 'inicio'
+let txType = 'income'
+
+function goTo(id, btn){
+  SECS.forEach(s=>document.getElementById('sec-'+s).classList.remove('on'))
+  document.getElementById('sec-'+id).classList.add('on')
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'))
+  if(btn) btn.classList.add('active')
+  const topbar = document.getElementById('main-topbar')
+  topbar.style.display = ['asesor'].includes(id) ? 'none' : 'block'
+  document.getElementById('fab').style.display = id==='personal' ? 'flex' : 'none'
+  document.getElementById('main-scroll').scrollTo(0,0)
+  currentSec = id
+  if(id==='asesor') document.getElementById('chat-inp').focus()
+}
+
+// ─── AI ──────────────────────────────────────────────────
+const chatHistory = []
+
+const SYSTEM_PROMPT = `Eres Finora, un asesor financiero personal con IA para España. Eres experto en:
+- Fiscalidad española: autónomos, IVA, IRPF, Modelo 303, 130, 100, gastos deducibles
+- Finanzas personales: ahorro, inversión, presupuesto, fondo de emergencia
+- Planificación financiera: objetivos, deudas, planes de pensiones, fondos indexados
+
+Datos del usuario actual (María García, autónoma):
+- Ingresos junio: 4.200 euros | Gastos: 1.847 euros | Beneficio neto: 2.353 euros
+- Ahorro total acumulado: 8.420 euros | Tasa de ahorro: 56%
+- IVA Q2 pendiente: 2.982 euros (vence 20 julio)
+- Facturación anual 2026: 48.600 euros
+- Gastos deducibles registrados: 4.820 euros (ahorro fiscal estimado: 964 euros)
+- Categorías de gasto más altas: restaurantes 287 euros/mes (+34%), software 180 euros/mes
+- Objetivos: vacaciones Japón (1.240/3.000 euros), ordenador nuevo (800/2.500 euros)
+
+Responde siempre en español, de forma clara y directa. Sé concreto con números cuando sea posible. Máximo 4-5 líneas por respuesta salvo que el usuario pida más detalle. Cuando des consejo fiscal añade al final: "Consulta con tu gestor fiscal antes de aplicarlo."`
+
+async function callAI(userMessage){
+  chatHistory.push({ role: 'user', content: userMessage })
+
+  const messages = [
+    { role: 'system', content: SYSTEM_PROMPT },
+    ...chatHistory.slice(-10)
+  ]
+
+  const response = await puter.ai.chat(messages, { model: 'gpt-4o-mini' })
+  const text = response?.message?.content || response?.text || String(response)
+  chatHistory.push({ role: 'assistant', content: text })
+  return text
+}
+
+function appendBubble(container, role, text){
+  const d = document.createElement('div')
+  d.className = 'bubble ' + role
+  d.innerHTML = text.replace(/\n/g, '<br>')
+  container.appendChild(d)
+  container.scrollTop = container.scrollHeight
+  return d
+}
+
+async function sendChat(){
+  const inp = document.getElementById('chat-inp')
+  const val = inp.value.trim()
+  if(!val) return
+  inp.value = ''
+  inp.disabled = true
+
+  const msgs = document.getElementById('chat-msgs')
+  appendBubble(msgs, 'user', val)
+
+  const typing = document.createElement('div')
+  typing.className = 'bubble ai'
+  typing.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>'
+  msgs.appendChild(typing)
+  msgs.scrollTop = msgs.scrollHeight
+
+  try{
+    const reply = await callAI(val)
+    typing.remove()
+    appendBubble(msgs, 'ai', reply)
+  } catch(e){
+    typing.innerHTML = 'No se pudo conectar. Comprueba tu conexión a internet.'
+  }
+
+  inp.disabled = false
+  inp.focus()
+}
+
+function askAI(q){
+  document.getElementById('chat-inp').value = q
+  sendChat()
+}
+
+function sendHomeMsg(){
+  const inp = document.getElementById('home-inp')
+  const val = inp.value.trim()
+  if(!val) return
+  inp.value = ''
+  goTo('asesor', document.querySelectorAll('.nav-btn')[1])
+  setTimeout(()=>{ document.getElementById('chat-inp').value = val; sendChat() }, 200)
+}
+
+// MODAL
+function openModal(){
+  document.getElementById('add-modal').classList.add('on')
+  document.getElementById('inp-date').value = new Date().toISOString().split('T')[0]
+  selectType('expense')
+  setTimeout(()=>document.getElementById('inp-amount').focus(), 100)
+}
+function closeModal(){ document.getElementById('add-modal').classList.remove('on') }
+function closeModalIfBg(e){ if(e.target===e.currentTarget) closeModal() }
+
+function selectType(t){
+  txType = t
+  document.getElementById('btn-expense').className = 'type-btn'+(t==='expense'?' active':'')
+  document.getElementById('btn-income').className = 'type-btn'+(t==='income'?' active':'')
+}
+
+function saveTransaction(){
+  const amount = parseFloat(document.getElementById('inp-amount').value||'0')
+  const desc = document.getElementById('inp-desc').value.trim()||'Sin descripción'
+  const cat = document.getElementById('inp-cat').value
+  if(!amount||amount<=0){ showToast('Introduce una cantidad válida'); return }
+
+  const amClass = txType==='income' ? 'pos' : 'neg'
+  const amStr = (txType==='income'?'+':'−')+amount.toFixed(2)+' €'
+  const today = new Date().toLocaleDateString('es-ES',{day:'numeric',month:'short'})
+  const iconClass = txType==='income' ? 'income' : 'expense'
+
+  const list = document.getElementById('tx-list')
+  const item = document.createElement('div')
+  item.className = 'tx-item'
+  item.innerHTML = `<div class="tx-icon ${iconClass}"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="14" height="11" rx="2"/><path d="M5 8h5M5 11h3"/></svg></div><div class="tx-info"><div class="tx-name">${desc}</div><div class="tx-cat">${cat} · ${today}</div></div><div class="tx-amount ${amClass}">${amStr}</div>`
+  list.prepend(item)
+
+  closeModal()
+  document.getElementById('inp-amount').value = ''
+  document.getElementById('inp-desc').value = ''
+  showToast('Movimiento guardado')
+}
+
+// TOAST
+let toastTimer
+function showToast(msg){
+  const t = document.getElementById('toast')
+  t.textContent = msg
+  t.classList.add('on')
+  clearTimeout(toastTimer)
+  toastTimer = setTimeout(()=>t.classList.remove('on'), 2500)
+}
+
+// INIT
+const now = new Date()
+const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre']
+document.getElementById('tb-month').textContent = months[now.getMonth()]+' '+now.getFullYear()
+const hour = now.getHours()
+document.getElementById('tb-greeting').textContent = (hour<12?'Buenos días':hour<18?'Buenas tardes':'Buenas noches')+', María'
+
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}) }
+
+setTimeout(()=>{
+  const s = document.getElementById('splash')
+  s.style.transition = 'opacity .4s'
+  s.style.opacity = '0'
+  setTimeout(()=>{ s.style.display='none'; document.getElementById('app').classList.add('on') }, 400)
+}, 1900)
+</script>
+</body>
+</html>
