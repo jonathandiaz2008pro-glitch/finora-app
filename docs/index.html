@@ -498,6 +498,21 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,s
 .pc-cta-pro{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--dark);box-shadow:0 4px 16px rgba(201,168,76,.35)}
 .pc-cta-auto{background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff}
 .pc-hint{text-align:center;margin-top:9px;font-size:10px;color:#6b7280}
+.pc-annual-note{text-align:center;font-size:11px;color:var(--gold);font-weight:600;margin-top:6px;display:none}
+
+/* Billing toggle */
+.billing-toggle{display:flex;background:var(--bg);border-radius:14px;padding:4px;gap:4px;margin:0 auto 22px;width:fit-content}
+.billing-btn{background:none;border:none;border-radius:10px;padding:8px 18px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text2);transition:all .2s;white-space:nowrap}
+.billing-btn.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.billing-badge{background:var(--green);color:#fff;font-size:9px;font-weight:800;padding:1px 6px;border-radius:20px;margin-left:5px;vertical-align:middle}
+
+/* Payment method modal */
+.pay-methods{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:6px}
+.pay-method-btn{background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:14px 8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--text);transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:6px}
+.pay-method-btn:hover{border-color:var(--gold);background:var(--surface)}
+.pay-method-btn:active{transform:scale(.97)}
+.pay-method-btn span{font-size:11px;font-weight:600}
+.pay-secure{text-align:center;font-size:10px;color:var(--text3);margin-top:14px}
 
 .trust-bar{display:flex;justify-content:center;gap:16px;padding:14px 0;margin-bottom:22px;flex-wrap:wrap;border-top:1px solid var(--border2);border-bottom:1px solid var(--border2)}
 .trust-item{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:var(--text2)}
@@ -1123,6 +1138,12 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,s
           <div class="savings-callout-sub">Pecunia las detecta automáticamente con IA</div>
         </div>
 
+        <!-- Billing toggle -->
+        <div class="billing-toggle">
+          <button class="billing-btn active" id="btn-mensual" onclick="setBilling('mensual')">Mensual</button>
+          <button class="billing-btn" id="btn-anual" onclick="setBilling('anual')">Anual <span class="billing-badge">2 meses gratis</span></button>
+        </div>
+
         <!-- Plan Gratuito -->
         <div class="pricing-card-new pc-free">
           <div class="pc-plan-name">Gratuito</div>
@@ -1145,7 +1166,8 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,s
           <div class="pc-popular-badge">⭐ MÁS POPULAR</div>
           <div style="margin-top:20px">
             <div class="pc-plan-name">Pro</div>
-            <div class="pc-price"><span class="pc-price-amount">9 €</span><span class="pc-price-period">/mes · IVA incl.</span></div>
+            <div class="pc-price"><span class="pc-price-amount" id="pro-price-amount">10,89 €</span><span class="pc-price-period" id="pro-price-period">/mes · IVA incl.</span></div>
+            <div class="pc-annual-note" id="pro-annual-note">108,90 €/año · equivale a 2 meses gratis</div>
             <div class="pc-desc">Tu asesor financiero personal impulsado por IA. La herramienta que se paga sola.</div>
             <div class="pc-divider"></div>
             <ul class="pc-features">
@@ -1160,7 +1182,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,s
               <li class="pc-feature"><span class="pc-feature-icon">📅</span> Comparativas mensuales</li>
               <li class="pc-feature"><span class="pc-feature-icon">🤖</span> Recomendaciones personalizadas IA</li>
             </ul>
-            <button class="pc-cta pc-cta-pro" onclick="selectPlan('pro')">Activar Pro · 9 €/mes →</button>
+            <button class="pc-cta pc-cta-pro" id="pro-cta" onclick="selectPlan('pro')">Activar Pro · 10,89 €/mes →</button>
             <div class="pc-hint">Sin permanencia · Cancela cuando quieras</div>
           </div>
         </div>
@@ -1168,7 +1190,8 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,s
         <!-- Plan Autónomos+ -->
         <div class="pricing-card-new pc-auto">
           <div class="pc-plan-name">Autónomos+</div>
-          <div class="pc-price"><span class="pc-price-amount">19 €</span><span class="pc-price-period">/mes · IVA incl.</span></div>
+          <div class="pc-price"><span class="pc-price-amount" id="auto-price-amount">22,99 €</span><span class="pc-price-period" id="auto-price-period">/mes · IVA incl.</span></div>
+          <div class="pc-annual-note" id="auto-annual-note">229,90 €/año · equivale a 2 meses gratis</div>
           <div class="pc-desc">Todo lo que necesita un autónomo para controlar su negocio y no perder ni un euro en impuestos.</div>
           <div class="pc-divider"></div>
           <ul class="pc-features">
@@ -1182,8 +1205,8 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,s
             <li class="pc-feature"><span class="pc-feature-icon">🤝</span> Asistente fiscal especializado IA</li>
             <li class="pc-feature" style="color:#a78bfa;font-weight:600"><span class="pc-feature-icon">➕</span> Todo lo del plan Pro incluido</li>
           </ul>
-          <button class="pc-cta pc-cta-auto" onclick="selectPlan('financiero')">Activar Autónomos+ · 19 €/mes</button>
-          <div class="pc-hint">Pago mensual · Sin permanencia</div>
+          <button class="pc-cta pc-cta-auto" id="auto-cta" onclick="selectPlan('financiero')">Activar Autónomos+ · 22,99 €/mes</button>
+          <div class="pc-hint">Sin permanencia · Cancela cuando quieras</div>
         </div>
 
         <!-- Trust bar -->
@@ -1198,7 +1221,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,s
           </div>
           <div class="trust-item">
             <svg viewBox="0 0 14 14" stroke="var(--green)"><rect x="1" y="3" width="12" height="9" rx="1.5"/><path d="M1 6.5h12"/></svg>
-            Pago seguro PayPal
+            Pago 100% seguro
           </div>
           <div class="trust-item">
             <svg viewBox="0 0 14 14" stroke="var(--green)"><circle cx="7" cy="7" r="5.5"/><path d="M7 4.5v3l2 1.5"/></svg>
@@ -1546,6 +1569,24 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,s
 </div>
 
 <!-- UPGRADE MODAL -->
+<!-- Payment method modal -->
+<div class="modal" id="pay-modal" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="modal-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="pay-modal-title">Plan Pro · 10,89 €/mes</div>
+    <div class="sheet-sub" id="pay-modal-sub">IVA incluido · Activo en menos de 24 h tras confirmar el pago</div>
+    <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">¿Cómo quieres pagar?</div>
+    <div class="pay-methods">
+      <button class="pay-method-btn" onclick="doPay('card')"><span style="font-size:22px">💳</span><span>Tarjeta</span></button>
+      <button class="pay-method-btn" onclick="doPay('paypal')"><span style="font-size:22px">🅿️</span><span>PayPal</span></button>
+      <button class="pay-method-btn" onclick="doPay('bizum')"><span style="font-size:22px">📱</span><span>Bizum</span></button>
+      <button class="pay-method-btn" onclick="doPay('transfer')"><span style="font-size:22px">🏦</span><span>Transferencia</span></button>
+    </div>
+    <div id="pay-method-detail" style="display:none;margin-top:12px;padding:14px;background:var(--bg);border-radius:12px;font-size:12px;line-height:1.7;color:var(--text2)"></div>
+    <div class="pay-secure">🔒 Pago 100% seguro · Datos protegidos · RGPD</div>
+  </div>
+</div>
+
 <div class="modal" id="upgrade-modal" onclick="if(event.target===this)this.classList.remove('on')">
   <div class="modal-sheet">
     <div class="sheet-handle"></div>
@@ -2847,15 +2888,62 @@ function showLegal(tab){
 }
 
 // ─── PLANES ──────────────────────────────────────────────
+let currentBilling = 'mensual'
+let _payPlan = null, _payAmount = null, _payLabel = null
+
+function setBilling(type){
+  currentBilling = type
+  document.querySelectorAll('.billing-btn').forEach(b => b.classList.remove('active'))
+  document.getElementById('btn-' + type).classList.add('active')
+  const isAnual = type === 'anual'
+  // Pro
+  document.getElementById('pro-price-amount').textContent  = isAnual ? '9,08 €'  : '10,89 €'
+  document.getElementById('pro-price-period').textContent  = isAnual ? '/mes · IVA incl.' : '/mes · IVA incl.'
+  document.getElementById('pro-annual-note').style.display = isAnual ? 'block' : 'none'
+  document.getElementById('pro-cta').textContent = isAnual ? 'Activar Pro · 108,90 €/año →' : 'Activar Pro · 10,89 €/mes →'
+  // Autónomos+
+  document.getElementById('auto-price-amount').textContent  = isAnual ? '19,16 €' : '22,99 €'
+  document.getElementById('auto-price-period').textContent  = isAnual ? '/mes · IVA incl.' : '/mes · IVA incl.'
+  document.getElementById('auto-annual-note').style.display = isAnual ? 'block' : 'none'
+  document.getElementById('auto-cta').textContent = isAnual ? 'Activar Autónomos+ · 229,90 €/año' : 'Activar Autónomos+ · 22,99 €/mes'
+}
+
 function selectPlan(p){
   if(p === 'free'){ showToast('Ya usas el plan gratuito · Mejora a Pro para IA ilimitada'); return }
-  const amounts = { pro: '9.00', financiero: '19.00' }
-  const labels  = { pro: 'Pecunia Pro', financiero: 'Pecunia Autónomos+' }
-  const amount  = amounts[p]
-  const label   = labels[p]
-  const url = `https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=${encodeURIComponent(PAYPAL_EMAIL)}&amount=${amount}&currency_code=EUR&item_name=${encodeURIComponent(label)}&no_shipping=1&return=${encodeURIComponent(location.href)}`
-  window.open(url, '_blank')
-  showToast(`Redirigiendo a PayPal · ${amount} € · Activo en menos de 24 h`)
+  _payPlan = p
+  const isAnual = currentBilling === 'anual'
+  const rawAmounts = {
+    pro:        { mensual: '10.89', anual: '108.90' },
+    financiero: { mensual: '22.99', anual: '229.90' }
+  }
+  const displayAmounts = {
+    pro:        { mensual: '10,89 €/mes', anual: '108,90 €/año' },
+    financiero: { mensual: '22,99 €/mes', anual: '229,90 €/año' }
+  }
+  const names = { pro: 'Plan Pro', financiero: 'Autónomos+' }
+  _payAmount = rawAmounts[p][currentBilling]
+  _payLabel  = 'Pecunia ' + names[p] + (isAnual ? ' Anual' : '')
+  document.getElementById('pay-modal-title').textContent = names[p] + ' · ' + displayAmounts[p][currentBilling]
+  document.getElementById('pay-modal-sub').textContent   = 'IVA incluido · ' + (isAnual ? 'Facturación anual' : 'Facturación mensual') + ' · Activo en menos de 24 h'
+  document.getElementById('pay-method-detail').style.display = 'none'
+  document.getElementById('pay-modal').classList.add('on')
+}
+
+function doPay(method){
+  const detail = document.getElementById('pay-method-detail')
+  detail.style.display = 'none'
+  if(method === 'card' || method === 'paypal'){
+    const url = `https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=${encodeURIComponent(PAYPAL_EMAIL)}&amount=${_payAmount}&currency_code=EUR&item_name=${encodeURIComponent(_payLabel)}&no_shipping=1&return=${encodeURIComponent(location.href)}`
+    window.open(url, '_blank')
+    document.getElementById('pay-modal').classList.remove('on')
+    showToast('Redirigiendo al pago · Activo en menos de 24 h')
+  } else if(method === 'bizum'){
+    detail.style.display = 'block'
+    detail.innerHTML = `<b style="color:var(--text)">📱 Pago por Bizum</b><br><br>Envía <b style="color:var(--text)">${_payAmount.replace('.',',')} €</b> al número <b style="color:var(--text)">+34 XXXXXXXXX</b> con el concepto:<br><b style="color:var(--gold)">"${_payLabel}"</b><br><br>Adjunta el comprobante a <a href="mailto:${PAYPAL_EMAIL}" style="color:var(--gold);font-weight:600">${PAYPAL_EMAIL}</a> y activamos tu plan en menos de 24 h.`
+  } else if(method === 'transfer'){
+    detail.style.display = 'block'
+    detail.innerHTML = `<b style="color:var(--text)">🏦 Transferencia bancaria</b><br><br>Titular: <b style="color:var(--text)">Jonathan Díaz</b><br>IBAN: <b style="color:var(--text)">ES00 0000 0000 0000 0000 0000</b><br>Importe: <b style="color:var(--gold)">${_payAmount.replace('.',',')} €</b><br>Concepto: <b style="color:var(--gold)">${_payLabel}</b><br><br>Envía el justificante a <a href="mailto:${PAYPAL_EMAIL}" style="color:var(--gold);font-weight:600">${PAYPAL_EMAIL}</a> y lo activamos en menos de 24 h.`
+  }
 }
 
 function togglePfaq(el){
