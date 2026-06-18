@@ -31,8 +31,8 @@
 <!-- Preconnect para rendimiento -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://nuragshfagbtvgicwqjm.supabase.co">
-<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+<link rel="preconnect" href="https://www.gstatic.com">
+<link rel="dns-prefetch" href="https://js.puter.com">
 <link rel="dns-prefetch" href="https://js.puter.com">
 
 <!-- Open Graph / Facebook / LinkedIn -->
@@ -228,7 +228,9 @@
 
 <link rel="manifest" href="manifest.json">
 <script src="https://js.puter.com/v2/"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 :root{
@@ -1612,25 +1614,22 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,s
 </div>
 
 <script>
-// ─── SUPABASE ─────────────────────────────────────────────
-// 👉 RELLENA ESTOS DOS VALORES con los de tu proyecto Supabase
-//    Settings → API → Project URL y anon/public key
-const SUPABASE_URL  = 'https://nuragshfagbtvgicwqjm.supabase.co'
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51cmFnc2hmYWdidHZnaWN3cWptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3Mjg3NTEsImV4cCI6MjA5NzMwNDc1MX0.GlwmJ2UI3cWQuwADH1jF8XAgnNN5TUYG1SVRqnt1rbw'
+// ─── FIREBASE ─────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyAU9hV_J0mtFzp7wJ6apvqEyHOvV9hPbJk",
+  authDomain: "pecunia-app-9fbde.firebaseapp.com",
+  projectId: "pecunia-app-9fbde",
+  storageBucket: "pecunia-app-9fbde.firebasestorage.app",
+  messagingSenderId: "939093598419",
+  appId: "1:939093598419:web:19c19cf0c06182ee117426"
+}
+firebase.initializeApp(firebaseConfig)
+const auth = firebase.auth()
+const db   = firebase.firestore()
+const googleProvider = new firebase.auth.GoogleAuthProvider()
 
 // Email de PayPal donde recibes los pagos
 const PAYPAL_EMAIL = 'jonathandiaz2008pro@gmail.com'
-
-let sb = null
-try {
-  if(SUPABASE_URL !== 'TU_SUPABASE_URL'){
-    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON)
-    // Warmup: wake up Supabase immediately so login is instant
-    setTimeout(() => {
-      sb.from('profiles').select('id').limit(1).then(() => {}).catch(() => {})
-    }, 500)
-  }
-} catch(e){ console.warn('Supabase no configurado, modo local') }
 
 // ─── DATOS ───────────────────────────────────────────────
 const PLANS = {
@@ -1647,48 +1646,31 @@ let transactions = []
 let txType = 'ingreso'
 let regMode = 'autonomo'
 
-// ─── PERSISTENCIA (Supabase si configurado, sino localStorage) ────────────
-async function loadUser(){
-  if(sb){
-    const { data: { session } } = await sb.auth.getSession()
-    if(session){
-      const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single()
-      if(profile){
-        user = { ...profile, email: session.user.email }
-        const { data: txData } = await sb.from('transactions').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false })
-        transactions = txData || []
-      }
-    }
-  } else {
-    const u = localStorage.getItem('Pecunia_user')
-    if(u) user = JSON.parse(u)
-    const tx = localStorage.getItem('Pecunia_tx')
-    if(tx) transactions = JSON.parse(tx)
+// ─── PERSISTENCIA (Firebase) ──────────────────────────────
+async function loadUserFromFirebase(firebaseUser){
+  const profileDoc = await db.collection('profiles').doc(firebaseUser.uid).get()
+  const profile = profileDoc.data()
+  if(profile){
+    user = { ...profile, id: firebaseUser.uid, email: firebaseUser.email, plan: profile.plan||'free', name: profile.name||firebaseUser.email.split('@')[0] }
+    const txSnap = await db.collection('transactions').where('user_id','==',firebaseUser.uid).orderBy('created_at','desc').get()
+    transactions = txSnap.docs.map(d => ({ id: d.id, ...d.data() }))
   }
 }
 
 async function saveUser(){
-  if(sb && user){
-    await sb.from('profiles').upsert({
-      id: user.id,
+  const fu = auth.currentUser
+  if(fu && user){
+    await db.collection('profiles').doc(fu.uid).set({
       name: user.name,
       mode: user.mode,
       income: user.income,
       expenses: user.expenses,
       plan: user.plan || 'free'
-    })
-  } else {
-    localStorage.setItem('Pecunia_user', JSON.stringify(user))
+    }, { merge: true })
   }
 }
 
-async function saveTx(){
-  if(sb && user){
-    // Supabase: cada tx se guarda/actualiza individualmente al añadir
-  } else {
-    localStorage.setItem('Pecunia_tx', JSON.stringify(transactions))
-  }
-}
+async function saveTx(){ /* Firebase: each tx saved individually on add */ }
 
 // ─── AI LIMIT (tracking mensual para free) ───────────────
 function getMonthKey(){ return 'ai_' + new Date().toISOString().slice(0,7) }
@@ -1745,12 +1727,12 @@ function setMode(m){
 }
 
 async function doGoogleLogin(){
-  if(!sb){ showToast('Supabase no configurado','error'); return; }
-  const {error} = await sb.auth.signInWithOAuth({
-    provider:'google',
-    options:{ redirectTo: window.location.href }
-  });
-  if(error) showToast('Error con Google: '+error.message,'error');
+  try {
+    await auth.signInWithPopup(googleProvider)
+    // onAuthStateChanged handles the rest
+  } catch(e){
+    showToast('Error con Google: ' + e.message, 'error')
+  }
 }
 
 function authFieldError(id, msg){
@@ -1827,60 +1809,24 @@ async function doLogin(){
   const btn = document.getElementById('btn-login')
   btn.disabled = true
 
-  // Password recovery mode
-  if(window._recoveryMode && sb){
-    btn.textContent = 'Actualizando...'
-    if(!pass || pass.length < 6){ authFieldError('err-login-pass','Mínimo 6 caracteres'); btn.disabled=false; btn.textContent='Entrar'; return }
-    const { error } = await sb.auth.updateUser({ password: pass })
-    btn.disabled = false
-    btn.textContent = 'Entrar'
-    if(error){ authShowError('login-error', 'Error: ' + error.message); return }
-    window._recoveryMode = false
-    document.getElementById('login-success').textContent = '✓ Contraseña actualizada. Inicia sesión con tu nueva contraseña.'
-    return
-  }
 
   btn.textContent = 'Entrando...'
 
   try {
-    if(sb){
-      const { data, error } = await sb.auth.signInWithPassword({ email, password: pass })
-      if(error){
-        const msg = error.message || ''
-        if(msg.includes('Invalid login') || msg.includes('invalid_credentials') || msg.includes('Invalid credentials')){
-          authFieldError('err-login-email','Email o contraseña incorrectos')
-          authFieldError('err-login-pass','Revisa tu contraseña')
-          setFieldState('login-email',true)
-          setFieldState('login-pass',true)
-        } else if(msg.includes('Email not confirmed')){
-          authShowError('login-error','Tu cuenta no está verificada. Revisa tu correo (también spam) y haz clic en el enlace de confirmación.')
-        } else if(msg.includes('Too many')){
-          authShowError('login-error','Demasiados intentos. Espera unos minutos e inténtalo de nuevo.')
-        } else {
-          authShowError('login-error', 'Error al iniciar sesión: ' + msg)
-        }
-        return
-      }
-      const { data: profile } = await sb.from('profiles').select('*').eq('id', data.user.id).single()
-      user = { ...(profile||{}), id: data.user.id, email: data.user.email, plan: profile?.plan||'free', name: profile?.name||email.split('@')[0] }
-      const { data: txData } = await sb.from('transactions').select('*').eq('user_id', data.user.id).order('created_at', { ascending: false })
-      transactions = txData || []
-      enterApp()
-    } else {
-      const stored = localStorage.getItem('Pecunia_user')
-      if(!stored){ authShowError('login-error','No existe esa cuenta. ¿Quieres registrarte?'); return }
-      const u = JSON.parse(stored)
-      if(u.email !== email){ authFieldError('err-login-email','Email incorrecto'); setFieldState('login-email',true); return }
-      if(u.password !== btoa(pass)){ authFieldError('err-login-pass','Contraseña incorrecta'); setFieldState('login-pass',true); return }
-      user = u
-      const tx = localStorage.getItem('Pecunia_tx')
-      if(tx) transactions = JSON.parse(tx)
-      enterApp()
-    }
+    await auth.signInWithEmailAndPassword(email, pass)
+    // onAuthStateChanged will load profile and call enterApp()
   } catch(e){
-    authShowError('login-error','Error de conexión. Comprueba tu internet e inténtalo de nuevo.')
-    console.error(e)
-  } finally {
+    const code = e.code || ''
+    if(code === 'auth/wrong-password' || code === 'auth/user-not-found' || code === 'auth/invalid-credential'){
+      authFieldError('err-login-email','Email o contraseña incorrectos')
+      authFieldError('err-login-pass','Revisa tu contraseña')
+      setFieldState('login-email',true)
+      setFieldState('login-pass',true)
+    } else if(code === 'auth/too-many-requests'){
+      authShowError('login-error','Demasiados intentos. Espera unos minutos e inténtalo de nuevo.')
+    } else {
+      authShowError('login-error','Error al iniciar sesión: ' + e.message)
+    }
     btn.textContent = 'Entrar'
     btn.disabled = false
   }
@@ -1896,19 +1842,17 @@ async function doForgotPassword(){
     setFieldState('login-email', true)
     return
   }
-  if(!sb){ authShowError('login-error','Esta función requiere conexión a internet.'); return }
   const btn = document.querySelector('.forgot-link')
-  if(btn){ btn.textContent = 'Enviando...' }
+  if(btn) btn.textContent = 'Enviando...'
   try {
-    const { error } = await sb.auth.resetPasswordForEmail(email, {
-      redirectTo: 'https://jodrowebs.github.io/pecunia-app/'
+    await auth.sendPasswordResetEmail(email, {
+      url: 'https://jodrowebs.github.io/pecunia-app/'
     })
-    if(error){ authShowError('login-error', 'Error: ' + error.message); return }
     authShowSuccess('login-success', '✓ Hemos enviado un enlace a ' + email + '. Revisa tu bandeja (y spam).')
   } catch(e){
-    authShowError('login-error','Error de conexión. Inténtalo de nuevo.')
+    authShowError('login-error', 'Error: ' + e.message)
   } finally {
-    if(btn){ btn.textContent = '¿Olvidaste tu contraseña?' }
+    if(btn) btn.textContent = '¿Olvidaste tu contraseña?'
   }
 }
 
@@ -1936,50 +1880,29 @@ async function doRegister(){
   btn.disabled = true
 
   try {
-    if(sb){
-      const { data, error } = await sb.auth.signUp({
-        email, password: pass,
-        options: { data: { name } }
-      })
-      if(error){
-        const msg = error.message || ''
-        if(msg.includes('already registered') || msg.includes('already been registered') || msg.includes('User already registered')){
-          authFieldError('err-reg-email','Ese email ya tiene cuenta. ¿Quieres iniciar sesión?')
-          setFieldState('reg-email', true)
-        } else if(msg.includes('Password should be')){
-          authFieldError('err-reg-pass','La contraseña no cumple los requisitos de seguridad')
-          setFieldState('reg-pass', true)
-        } else if(msg.includes('valid email')){
-          authFieldError('err-reg-email','Introduce un email válido')
-          setFieldState('reg-email', true)
-        } else {
-          authShowError('reg-error', 'Error al registrar: ' + msg)
-        }
-        return
-      }
-      const uid = data.user?.id
-      if(!uid){ authShowError('reg-error','No se pudo crear la cuenta. Inténtalo de nuevo.'); return }
-      const profile = { id: uid, name, mode: regMode, income, expenses, plan: 'free' }
-      await sb.from('profiles').upsert(profile)
-      user = { ...profile, email }
-      transactions = []
-      showToast('¡Bienvenido a Pecunia!')
-      enterApp()
-      if(!user.onboarded) setTimeout(showOnboarding, 600)
-    } else {
-      if(localStorage.getItem('Pecunia_user')){
-        const existing = JSON.parse(localStorage.getItem('Pecunia_user'))
-        if(existing.email === email){ authFieldError('err-reg-email','Ese email ya está registrado'); setFieldState('reg-email',true); return }
-      }
-      user = { name, email, password: btoa(pass), mode: regMode, income, expenses, plan: 'free', createdAt: Date.now() }
-      localStorage.setItem('Pecunia_user', JSON.stringify(user))
-      transactions = []
-      enterApp()
-      setTimeout(showOnboarding, 600)
-    }
+    const cred = await auth.createUserWithEmailAndPassword(email, pass)
+    const uid = cred.user.uid
+    const profile = { name, mode: regMode, income, expenses, plan: 'free' }
+    await db.collection('profiles').doc(uid).set(profile)
+    user = { ...profile, id: uid, email }
+    transactions = []
+    showToast('¡Bienvenido a Pecunia!')
+    enterApp()
+    if(!user.onboarded) setTimeout(showOnboarding, 600)
   } catch(e){
-    authShowError('reg-error','Error de conexión. Inténtalo de nuevo.')
-    console.error(e)
+    const code = e.code || ''
+    if(code === 'auth/email-already-in-use'){
+      authFieldError('err-reg-email','Ese email ya tiene cuenta. ¿Quieres iniciar sesión?')
+      setFieldState('reg-email', true)
+    } else if(code === 'auth/weak-password'){
+      authFieldError('err-reg-pass','La contraseña es demasiado débil (mínimo 6 caracteres)')
+      setFieldState('reg-pass', true)
+    } else if(code === 'auth/invalid-email'){
+      authFieldError('err-reg-email','Introduce un email válido')
+      setFieldState('reg-email', true)
+    } else {
+      authShowError('reg-error', 'Error al registrar: ' + e.message)
+    }
   } finally {
     btn.textContent = 'Crear cuenta gratis'
     btn.disabled = false
@@ -1987,7 +1910,7 @@ async function doRegister(){
 }
 
 async function doLogout(){
-  if(sb) await sb.auth.signOut()
+  await auth.signOut()
   user = null
   transactions = []
   chatHistory.length = 0
@@ -2601,23 +2524,22 @@ async function saveTransaction(){
   if(!amount || amount <= 0){ showToast('Introduce una cantidad válida'); return }
 
   const today = new Date().toLocaleDateString('es-ES',{day:'numeric',month:'short'})
-  const ts = Date.now()
-  const tx = { type:txType, amount, desc, cat, date:today, id:ts, ts }
+  const tx = { type:txType, amount, desc, cat, date:today, id:Date.now() }
 
-  if(sb && user?.id){
-    const { data, error } = await sb.from('transactions').insert({
+  if(auth.currentUser && user?.id){
+    const docRef = await db.collection('transactions').add({
       user_id: user.id,
       type: txType,
       amount,
       description: desc,
       cat,
-      date: today
-    }).select().single()
-    if(!error && data) tx.id = data.id
+      date: today,
+      created_at: firebase.firestore.FieldValue.serverTimestamp()
+    })
+    tx.id = docRef.id
   }
 
   transactions.unshift(tx)
-  if(!sb) saveTx()
   closeAddModal()
   renderTxList()
   renderHealthScore()
@@ -3006,11 +2928,10 @@ function renderGoals(){
 // ─── DELETE TRANSACTION ───────────────────────────────────
 async function deleteTransaction(id){
   if(!confirm('¿Eliminar este movimiento?')) return
-  if(sb && user?.id){
-    await sb.from('transactions').delete().eq('id', id)
+  if(auth.currentUser){
+    await db.collection('transactions').doc(String(id)).delete().catch(()=>{})
   }
-  transactions = transactions.filter(t=>t.id !== id)
-  if(!sb) saveTx()
+  transactions = transactions.filter(t=>String(t.id) !== String(id))
   renderTxList()
   renderHealthScore()
   generateSmartAlerts()
@@ -3084,31 +3005,8 @@ if('serviceWorker' in navigator){
   })
 }
 
-// Escuchar cambios de sesión Supabase (confirmación email, etc.)
-if(sb){
-  sb.auth.onAuthStateChange(async (event, session) => {
-    if(event === 'SIGNED_IN' && session && !user){
-      const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single()
-      if(profile){
-        user = { ...profile, email: session.user.email }
-        const { data: txData } = await sb.from('transactions').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false })
-        transactions = txData || []
-        enterApp()
-      }
-    }
-    if(event === 'PASSWORD_RECOVERY'){
-      // Show password update UI
-      document.getElementById('auth-screen').classList.add('on')
-      document.getElementById('app').style.display = 'none'
-      switchTab('login')
-      document.getElementById('login-success').textContent = 'Introduce tu nueva contraseña abajo y pulsa Entrar para actualizarla.'
-      document.getElementById('login-success').classList.add('on')
-      document.getElementById('login-pass').focus()
-      // Override doLogin to update password instead
-      window._recoveryMode = true
-    }
-  })
-}
+// ─── FIREBASE AUTH STATE ──────────────────────────────────
+let _appReady = false
 
 function hideSplash(){
   const s = document.getElementById('splash')
@@ -3127,12 +3025,29 @@ function hideSplash(){
   }, 350)
 }
 
-;(async ()=>{
-  const t = setTimeout(hideSplash, 3000) // fallback máximo 3s
-  try { await loadUser() } catch(e){ console.warn(e) }
-  clearTimeout(t)
-  hideSplash()
-})()
+auth.onAuthStateChanged(async (firebaseUser) => {
+  if(firebaseUser && !user){
+    try {
+      await loadUserFromFirebase(firebaseUser)
+    } catch(e){ console.warn('Error cargando perfil:', e) }
+    if(!_appReady){
+      _appReady = true
+      hideSplash()
+    } else if(user){
+      enterApp()
+    }
+  } else if(!firebaseUser){
+    if(!_appReady){
+      _appReady = true
+      hideSplash()
+    }
+  }
+})
+
+// Splash fallback: si Firebase tarda más de 4s, mostramos pantalla de login
+setTimeout(()=>{
+  if(!_appReady){ _appReady = true; hideSplash() }
+}, 4000)
 </script>
 </body>
 </html>

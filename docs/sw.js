@@ -35,12 +35,13 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url)
 
-  // NEVER cache or intercept Supabase, puter, or API calls
+  // NEVER cache or intercept Firebase, puter, or API calls
   if(
-    url.hostname.includes('supabase.co') ||
+    url.hostname.includes('firebase') ||
+    url.hostname.includes('googleapis.com') ||
+    url.hostname.includes('gstatic.com') && !url.hostname.includes('fonts') ||
     url.hostname.includes('puter.com') ||
-    url.hostname.includes('paypal.com') ||
-    url.hostname.includes('googleapis.com') && !url.pathname.startsWith('/css')
+    url.hostname.includes('paypal.com')
   ) return // pass through untouched
 
   // HTML — always fresh from network
