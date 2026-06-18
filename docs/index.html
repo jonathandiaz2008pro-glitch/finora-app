@@ -1844,8 +1844,7 @@ async function doLogin(){
 
   try {
     if(sb){
-      const withTimeout = (p,ms)=>Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms))])
-      const { data, error } = await withTimeout(sb.auth.signInWithPassword({ email, password: pass }), 25000)
+      const { data, error } = await sb.auth.signInWithPassword({ email, password: pass })
       if(error){
         const msg = error.message || ''
         if(msg.includes('Invalid login') || msg.includes('invalid_credentials') || msg.includes('Invalid credentials')){
@@ -1879,11 +1878,7 @@ async function doLogin(){
       enterApp()
     }
   } catch(e){
-    if(e.message === 'timeout'){
-      authShowError('login-error','El servidor tardó en responder. Inténtalo de nuevo (suele funcionar al segundo intento).')
-    } else {
-      authShowError('login-error','Error de conexión. Inténtalo de nuevo.')
-    }
+    authShowError('login-error','Error de conexión. Comprueba tu internet e inténtalo de nuevo.')
     console.error(e)
   } finally {
     btn.textContent = 'Entrar'
