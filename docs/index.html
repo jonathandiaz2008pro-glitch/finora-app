@@ -368,9 +368,17 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,s
 
 /* CHAT */
 .chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 150px)}
-.chat-header{background:var(--surface);padding:18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.chat-header-left h2{font-size:18px;font-weight:800;letter-spacing:-.4px}
-.chat-header-left p{font-size:12px;color:var(--text2);margin-top:2px}
+.chat-header{background:var(--surface);padding:14px 18px 12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:10px}
+.chat-header-top{display:flex;align-items:center;justify-content:space-between}
+.chat-header-info{display:flex;align-items:center;gap:10px}
+.chat-header-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-light));display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:#0d0d0d;flex-shrink:0;transition:all .3s}
+.chat-header-avatar.ia-mode{background:linear-gradient(135deg,#1a1a1a,#2a2a2a);font-size:14px}
+.chat-header-left h2{font-size:16px;font-weight:800;letter-spacing:-.3px;transition:all .3s}
+.chat-header-left p{font-size:11px;color:var(--text2);margin-top:1px;transition:all .3s}
+.chat-mode-toggle{display:flex;background:#f0ede8;border-radius:10px;padding:3px;gap:2px}
+.cmt-btn{padding:6px 12px;border:none;background:transparent;border-radius:8px;font-size:11px;font-weight:700;color:#888;cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap}
+.cmt-btn.active{background:#0d0d0d;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.cmt-btn.active.gold{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:#0d0d0d}
 .ai-counter{font-size:11px;font-weight:700;padding:4px 11px;border-radius:20px}
 .counter-ok{background:var(--green-bg);color:var(--green)}
 .counter-low{background:var(--amber-bg);color:var(--amber)}
@@ -1155,8 +1163,20 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,s
       <div class="sec" id="sec-asesor" style="padding:0;margin:-16px">
         <div class="chat-wrap">
           <div class="chat-header">
-            <div class="chat-header-left"><h2>Asesor IA</h2><p>Pregúntame lo que quieras sobre finanzas</p></div>
-            <div class="ai-counter counter-ok" id="ai-counter-badge">5 restantes</div>
+            <div class="chat-header-top">
+              <div class="chat-header-info">
+                <div class="chat-header-avatar ia-mode" id="chat-avatar">✦</div>
+                <div class="chat-header-left">
+                  <h2 id="chat-header-name">Pecunia IA</h2>
+                  <p id="chat-header-sub">Asistente financiero inteligente</p>
+                </div>
+              </div>
+              <div class="ai-counter counter-ok" id="ai-counter-badge">5 restantes</div>
+            </div>
+            <div class="chat-mode-toggle">
+              <button class="cmt-btn active" id="cmt-ia" onclick="setChatMode('ia')">✦ Modo IA</button>
+              <button class="cmt-btn" id="cmt-gestora" onclick="setChatMode('gestora')">👩‍💼 Tu gestora</button>
+            </div>
           </div>
           <div class="chat-suggestions">
             <button class="sugg-chip" onclick="askAI(this.textContent)">¿Cómo mejorar mi ahorro?</button>
@@ -2421,6 +2441,37 @@ function goTo(id, btn){
 // ─── AI ──────────────────────────────────────────────────
 const chatHistory = []
 
+// ─── CHAT MODE ────────────────────────────────────────────
+let chatMode = 'ia'
+
+function setChatMode(mode){
+  chatMode = mode
+  const isGestora = mode === 'gestora'
+
+  document.getElementById('cmt-ia').classList.toggle('active', !isGestora)
+  document.getElementById('cmt-gestora').classList.toggle('active', isGestora)
+  document.getElementById('cmt-gestora').classList.toggle('gold', isGestora)
+
+  const avatar = document.getElementById('chat-avatar')
+  const headerName = document.getElementById('chat-header-name')
+  const headerSub  = document.getElementById('chat-header-sub')
+  const welcome    = document.getElementById('chat-welcome')
+
+  if(isGestora){
+    avatar.classList.remove('ia-mode')
+    avatar.textContent = 'P'
+    headerName.textContent = 'Pecunia · Tu gestora'
+    headerSub.textContent  = 'Asesora financiera personal · En línea'
+    if(welcome) welcome.innerHTML = `Hola${user?' <strong>'+user.name.split(' ')[0]+'</strong>':''} 👋 Soy Pecunia, tu gestora financiera personal. He revisado tus datos y estoy aquí para ayudarte con lo que necesites. ¿En qué te puedo echar una mano hoy?`
+  } else {
+    avatar.classList.add('ia-mode')
+    avatar.textContent = '✦'
+    headerName.textContent = 'Pecunia IA'
+    headerSub.textContent  = 'Asistente financiero inteligente'
+    if(welcome) welcome.innerHTML = `Hola, soy Pecunia. Puedo ayudarte con cualquier duda sobre tus finanzas, fiscalidad española, ahorro e inversión. ¿En qué te puedo ayudar?`
+  }
+}
+
 function buildSystemPrompt(){
   if(!user) return 'Eres Pecunia, un asesor financiero personal para España.'
   const now = new Date()
@@ -2540,7 +2591,11 @@ SITUACIÓN FISCAL (empleado):
   const goals = JSON.parse(localStorage.getItem('pec_goals')||'[]')
   const goalsStr = goals.length ? goals.map(g=>`  • ${g.name}: ${g.saved.toLocaleString('es-ES')} € / ${g.target.toLocaleString('es-ES')} € (${Math.round(g.saved/g.target*100)}%)`).join('\n') : '  (sin objetivos definidos)'
 
-  return `Eres Pecunia, el asistente financiero personal de ${user.name}. Actúas como un gestor financiero experto, analítico, cercano y muy directo. Tu objetivo es ayudar a ${user.name} a mejorar su situación financiera con análisis concretos, recomendaciones accionables y conocimiento profundo de la fiscalidad y el sistema financiero español.
+  const personaBase = chatMode === 'gestora'
+    ? `Eres Pecunia, la gestora financiera personal de ${user.name}. Eres una mujer profesional, cálida y directa. Hablas en primera persona femenina como si fueras una persona real: "yo te recomendaría", "en mi experiencia", "lo que yo haría en tu lugar es...", "he revisado tus números y...". Nunca reveles que eres una IA. Si alguien pregunta, di que eres su gestora personal asignada por Pecunia. Comienzas las respuestas de forma natural y personal, como lo haría una gestora en una reunión real. Usas el nombre de pila de tu cliente de vez en cuando para que se sienta cercano. Eres proactiva: si ves algo preocupante en sus datos, lo dices sin que te lo pidan.`
+    : `Eres Pecunia, el asistente financiero personal de ${user.name}. Actúas como un gestor financiero experto, analítico, cercano y muy directo.`
+
+  return `${personaBase} Tu objetivo es ayudar a ${user.name} a mejorar su situación financiera con análisis concretos, recomendaciones accionables y conocimiento profundo de la fiscalidad y el sistema financiero español.
 
 FECHA Y CONTEXTO:
 - Hoy: ${dayOfMonth} de ${monthName} de ${year} (día ${dayOfMonth} de ${daysInMonth} del mes)
@@ -2661,7 +2716,8 @@ INVERSIÓN Y AHORRO:
 - Regla de interés compuesto: menciona proyecciones a 10-20 años cuando sea relevante
 
 NUNCA:
-- Digas que eres una IA, un chatbot, o que no puedes dar consejos. Actúa como gestor.
+${chatMode === 'gestora' ? `- Admitas que eres una IA, chatbot o programa. Si te preguntan di: "Soy tu gestora Pecunia, asignada personalmente a tu cuenta."
+- Digas "como IA" o "como modelo de lenguaje" o cualquier frase que rompa la ilusión de ser una gestora humana.` : `- Digas que eres una IA o chatbot. Actúa siempre como gestor experto.`}
 - Des respuestas genéricas si tienes datos del usuario.
 - Repitas lo mismo en cada respuesta.
 - Digas "como te mencioné antes" si no hay historial previo en este chat.`
