@@ -192,7 +192,7 @@
   "logo": "https://jodrowebs.github.io/pecunia-app/og-image.png",
   "contactPoint": {
     "@type": "ContactPoint",
-    "email": "jonathandiaz2008pro@gmail.com",
+    "email": "jodrowebs@gmail.com",
     "contactType": "customer support",
     "availableLanguage": "Spanish",
     "areaServed": "ES"
@@ -1410,7 +1410,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,s
           <div class="card card-pad">
             <div class="pfaq-item" onclick="togglePfaq(this)">
               <div class="pfaq-q">¿Puedo cancelar en cualquier momento?<svg class="pfaq-arrow" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4"/></svg></div>
-              <div class="pfaq-a">Sí, sin permanencia ni penalización. Escríbenos a jonathandiaz2008pro@gmail.com y cancelamos en el mismo día.</div>
+              <div class="pfaq-a">Sí, sin permanencia ni penalización. Escríbenos a jodrowebs@gmail.com y cancelamos en el mismo día.</div>
             </div>
             <div class="pfaq-item" onclick="togglePfaq(this)">
               <div class="pfaq-q">¿Cómo funciona el pago?<svg class="pfaq-arrow" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4"/></svg></div>
@@ -1606,7 +1606,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,s
           </div>
         </div>
         <button class="btn-outline" style="margin-top:12px" onclick="doLogout()">Cerrar sesión</button>
-        <div style="text-align:center;font-size:10px;color:var(--text3);margin-top:16px">Pecunia v1.0 · jonathandiaz2008pro@gmail.com</div>
+        <div style="text-align:center;font-size:10px;color:var(--text3);margin-top:16px">Pecunia v1.0 · jodrowebs@gmail.com</div>
       </div>
 
     </div>
@@ -1808,7 +1808,7 @@ const db   = firebase.firestore()
 const googleProvider = new firebase.auth.GoogleAuthProvider()
 
 // Email de PayPal donde recibes los pagos
-const PAYPAL_EMAIL = 'jonathandiaz2008pro@gmail.com'
+const PAYPAL_EMAIL = 'jodrowebs@gmail.com'
 
 // ─── DATOS ───────────────────────────────────────────────
 const PLANS = {
@@ -3185,10 +3185,10 @@ function renderInsights(){
 const LEGAL_CONTENT = {
   privacidad: {
     title:'Política de privacidad',
-    html:`<div class="legal-section"><h3>1. Responsable del tratamiento</h3><p>Pecunia es un servicio operado por Jonathan Díaz (jonathandiaz2008pro@gmail.com). Los datos se almacenan en Firebase (servidores EU).</p></div>
+    html:`<div class="legal-section"><h3>1. Responsable del tratamiento</h3><p>Pecunia es un servicio operado por Jonathan Díaz (jodrowebs@gmail.com). Los datos se almacenan en Firebase (servidores EU).</p></div>
     <div class="legal-section"><h3>2. Datos que recogemos</h3><p>Recogemos exclusivamente: email, nombre, situación laboral, ingresos/gastos mensuales y movimientos que tú introduces. No vendemos ni compartimos tus datos con terceros.</p></div>
     <div class="legal-section"><h3>3. Finalidad</h3><p>Tus datos se usan únicamente para ofrecerte el servicio de asesoramiento financiero personalizado con IA.</p></div>
-    <div class="legal-section"><h3>4. Tus derechos</h3><p>Puedes solicitar la eliminación de tus datos en cualquier momento escribiendo a jonathandiaz2008pro@gmail.com. Responderemos en menos de 72 horas.</p></div>
+    <div class="legal-section"><h3>4. Tus derechos</h3><p>Puedes solicitar la eliminación de tus datos en cualquier momento escribiendo a jodrowebs@gmail.com. Responderemos en menos de 72 horas.</p></div>
     <div class="legal-section"><h3>5. Seguridad</h3><p>Usamos cifrado TLS, autenticación segura de Firebase y reglas de seguridad por usuario para que nadie más pueda acceder a tus datos.</p></div>`
   },
   terminos: {
@@ -3202,17 +3202,17 @@ const LEGAL_CONTENT = {
     title:'Preguntas frecuentes',
     html:`<div class="faq-item"><div class="faq-q">¿Mis datos financieros están seguros?</div><div class="faq-a">Sí. Usamos Firebase con cifrado TLS y reglas de seguridad por usuario. Solo tú puedes ver tus datos.</div></div>
     <div class="faq-item"><div class="faq-q">¿Cómo se activa el plan Pro o Financiero?</div><div class="faq-a">Pagas vía PayPal y en menos de 24 h activamos tu plan manualmente. Te notificamos por email.</div></div>
-    <div class="faq-item"><div class="faq-q">¿Puedo cancelar mi suscripción?</div><div class="faq-a">Sí, en cualquier momento. Escríbenos a jonathandiaz2008pro@gmail.com y cancelamos sin preguntas.</div></div>
+    <div class="faq-item"><div class="faq-q">¿Puedo cancelar mi suscripción?</div><div class="faq-a">Sí, en cualquier momento. Escríbenos a jodrowebs@gmail.com y cancelamos sin preguntas.</div></div>
     <div class="faq-item"><div class="faq-q">¿La IA es un asesor fiscal real?</div><div class="faq-a">No. La IA ofrece orientación basada en tu perfil, pero no sustituye a un asesor fiscal colegiado. Para decisiones importantes, consulta con un profesional.</div></div>
     <div class="faq-item"><div class="faq-q">¿Funciona para empleados y autónomos?</div><div class="faq-a">Sí. Pecunia tiene funciones específicas para autónomos (IVA, IRPF, modelos) y para empleados (declaración de la renta, ahorro e inversión).</div></div>
     <div class="faq-item"><div class="faq-q">¿Dónde se almacenan mis datos?</div><div class="faq-a">En servidores de Firebase (Google Cloud) ubicados en la Unión Europea, cumpliendo con el RGPD.</div></div>`
   },
   contacto: {
     title:'Contacto y soporte',
-    html:`<div class="legal-section"><h3>Email de soporte</h3><p>jonathandiaz2008pro@gmail.com<br>Respondemos en menos de 24 horas laborables.</p></div>
+    html:`<div class="legal-section"><h3>Email de soporte</h3><p>jodrowebs@gmail.com<br>Respondemos en menos de 24 horas laborables.</p></div>
     <div class="legal-section"><h3>¿Problemas con el pago?</h3><p>Si tienes algún problema con tu suscripción, escríbenos con el asunto "Pago Pecunia" y lo resolvemos en el mismo día.</p></div>
     <div class="legal-section"><h3>Sugerencias</h3><p>Si tienes ideas para mejorar Pecunia, nos encantaría escucharte. Escríbenos con el asunto "Sugerencia".</p></div>
-    <div style="margin-top:16px"><a href="mailto:jonathandiaz2008pro@gmail.com" style="display:block;text-align:center;background:var(--dark);color:#fff;border-radius:14px;padding:14px;font-size:14px;font-weight:700;text-decoration:none">Escribir al soporte</a></div>`
+    <div style="margin-top:16px"><a href="mailto:jodrowebs@gmail.com" style="display:block;text-align:center;background:var(--dark);color:#fff;border-radius:14px;padding:14px;font-size:14px;font-weight:700;text-decoration:none">Escribir al soporte</a></div>`
   }
 }
 
