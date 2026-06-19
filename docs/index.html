@@ -175,7 +175,7 @@
       "name": "¿Mis datos financieros están seguros en Pecunia?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Sí. Los datos se almacenan en Supabase con cifrado TLS y Row Level Security en servidores de la Unión Europea (París), cumpliendo el RGPD. Solo tú puedes acceder a tus datos."
+        "text": "Sí. Los datos se almacenan en Firebase con cifrado TLS en servidores de la Unión Europea, cumpliendo el RGPD. Solo tú puedes acceder a tus datos."
       }
     },
     {
@@ -1334,7 +1334,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,s
             </div>
             <div class="pfaq-item" onclick="togglePfaq(this)">
               <div class="pfaq-q">¿Mis datos financieros están seguros?<svg class="pfaq-arrow" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4"/></svg></div>
-              <div class="pfaq-a">Sí. Usamos Supabase con cifrado TLS y Row Level Security en servidores de la UE (París, Francia), cumpliendo el RGPD. Solo tú puedes ver tus datos.</div>
+              <div class="pfaq-a">Sí. Usamos Firebase con cifrado TLS en servidores de la UE, cumpliendo el RGPD. Solo tú puedes ver tus datos.</div>
             </div>
           </div>
         </div>
@@ -2052,7 +2052,7 @@ function initDashboard(){
   const catTotals = {}
   gastosTx.forEach(t=>{ catTotals[t.cat]=(catTotals[t.cat]||0)+parseFloat(t.amount) })
   const topCat = Object.entries(catTotals).sort((a,b)=>b[1]-a[1])[0]
-  const healthScore = calcHealthScore()
+  const healthScore = calcHealthScore().total
 
   let aiMsg = `Hola <strong>${user.name.split(' ')[0]}</strong>. `
   if(transactions.length === 0){
@@ -2143,7 +2143,7 @@ function initDashboard(){
   const catTotals2 = {}
   gastos2.forEach(t=>{ catTotals2[t.cat]=(catTotals2[t.cat]||0)+parseFloat(t.amount) })
   const topCat2 = Object.entries(catTotals2).sort((a,b)=>b[1]-a[1])[0]
-  const hs = calcHealthScore()
+  const hs = calcHealthScore().total
 
   let welcomeMsg = `Hola **${user.name.split(' ')[0]}**. Soy tu asistente financiero personal.\n\n`
   if(transactions.length === 0){
@@ -2249,7 +2249,26 @@ function buildSystemPrompt(){
   const benefit  = income - expenses
   const savRate  = income > 0 ? Math.round((benefit/income)*100) : 0
   const modeStr  = {autonomo:'autónomo/a',empleado:'empleado/a por cuenta ajena',pareja:'en pareja (economía conjunta)'}[user.mode] || user.mode
-  const healthScore = calcHealthScore()
+  const healthScore = calcHealthScore().total
+
+  // Month-over-month comparison
+  const thisMonth = getMonthlyStats(0)
+  const lastMonth = getMonthlyStats(-1)
+  const twoMonthsAgo = getMonthlyStats(-2)
+  const monthDiff = lastMonth.totalGastos > 0 ? Math.round(((thisMonth.totalGastos - lastMonth.totalGastos) / lastMonth.totalGastos) * 100) : 0
+  const savingsTrend = [twoMonthsAgo, lastMonth, thisMonth].map(m => m.totalIngresos - m.totalGastos)
+  const trendDown = savingsTrend[0] > savingsTrend[1] && savingsTrend[1] > savingsTrend[2]
+
+  // Category trends (this vs last month)
+  const catTrendStr = Object.entries(thisMonth.catTotals).map(([cat, amt]) => {
+    const prev = lastMonth.catTotals[cat] || 0
+    const diff = prev > 0 ? Math.round(((amt - prev) / prev) * 100) : null
+    return `  • ${cat}: ${amt.toLocaleString('es-ES')} €${diff !== null ? ` (${diff > 0 ? '+' : ''}${diff}% vs mes anterior)` : ' (nuevo)'}`
+  }).join('\n') || '  (sin datos este mes)'
+
+  // Subscription detection
+  const subs = detectSubscriptions()
+  const subsStr2 = subs.length ? subs.map(s => `  • "${s.name}": ${s.avgAmount.toLocaleString('es-ES')} €/vez · ${s.count}x registrado`).join('\n') : '  ninguna detectada'
 
   // Transaction analysis
   const gastos   = transactions.filter(t=>t.type==='gasto')
@@ -2381,10 +2400,19 @@ Total ingresos registrados: +${totalIngresos.toLocaleString('es-ES')} €
 Total gastos registrados: -${totalGastos.toLocaleString('es-ES')} €
 Resultado neto en registro: ${netTx >= 0 ? '+' : ''}${netTx.toLocaleString('es-ES')} €
 
-DESGLOSE POR CATEGORÍA (gastos):
+DESGLOSE POR CATEGORÍA (gastos totales):
 ${catStr}
 
-POSIBLES SUSCRIPCIONES DETECTADAS: ${subsStr}
+ANÁLISIS MES ACTUAL vs MES ANTERIOR:
+- Gastos mes actual: ${thisMonth.totalGastos.toLocaleString('es-ES')} € | Mes anterior: ${lastMonth.totalGastos.toLocaleString('es-ES')} € | Variación: ${monthDiff > 0 ? '+' : ''}${monthDiff}%
+- Tendencia ahorro (2 meses atrás → anterior → actual): ${savingsTrend.map(v => v.toLocaleString('es-ES')+'€').join(' → ')}
+${trendDown ? '- ⚠️ ALERTA: El ahorro ha caído tres meses seguidos — mencionarlo si es relevante.' : ''}
+
+CATEGORÍAS ESTE MES (vs mes anterior):
+${catTrendStr}
+
+PAGOS RECURRENTES / POSIBLES SUSCRIPCIONES:
+${subsStr2}
 
 TODOS LOS MOVIMIENTOS REGISTRADOS:
 ${allTxStr}
@@ -2665,24 +2693,108 @@ function showOnboarding(){
 }
 
 // ─── HEALTH SCORE ─────────────────────────────────────────
+// ─── MONTHLY STATS HELPER ────────────────────────────────
+function getMonthlyStats(monthOffset = 0){
+  const now = new Date()
+  const target = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1)
+  const y = target.getFullYear(), m = target.getMonth()
+  const txMonth = transactions.filter(t => {
+    if(!t.date) return false
+    const d = new Date(t.date)
+    return d.getFullYear() === y && d.getMonth() === m
+  })
+  const gastos   = txMonth.filter(t => t.type === 'gasto')
+  const ingresos = txMonth.filter(t => t.type === 'ingreso')
+  const totalGastos   = gastos.reduce((s,t) => s + parseFloat(t.amount), 0)
+  const totalIngresos = ingresos.reduce((s,t) => s + parseFloat(t.amount), 0)
+  const catTotals = {}
+  gastos.forEach(t => { catTotals[t.cat] = (catTotals[t.cat]||0) + parseFloat(t.amount) })
+  return { totalGastos, totalIngresos, catTotals, count: txMonth.length, gastos, ingresos }
+}
+
+// ─── SUBSCRIPTION DETECTOR ───────────────────────────────
+function detectSubscriptions(){
+  const gastos = transactions.filter(t => t.type === 'gasto')
+  const groups = {}
+  gastos.forEach(t => {
+    const key = (t.description || t.desc || '').toLowerCase().trim() || t.cat
+    if(!groups[key]) groups[key] = []
+    groups[key].push(t)
+  })
+  return Object.entries(groups)
+    .filter(([_, txs]) => txs.length >= 2)
+    .sort((a,b) => b[1].length - a[1].length)
+    .map(([name, txs]) => ({
+      name, count: txs.length,
+      avgAmount: Math.round(txs.reduce((s,t) => s + parseFloat(t.amount), 0) / txs.length),
+      total: txs.reduce((s,t) => s + parseFloat(t.amount), 0)
+    }))
+}
+
+// ─── HEALTH SCORE ────────────────────────────────────────
 function calcHealthScore(){
-  if(!user) return 0
-  const income = user.income || 0
+  if(!user) return { total: 0, breakdown: [] }
+  const income   = user.income || 0
   const expenses = user.expenses || 0
-  if(income === 0) return 0
-  const savRate = Math.max(0, (income - expenses) / income)
-  const expRatio = Math.min(1, expenses / income)
-  let score = 0
-  score += Math.min(40, savRate * 200)
-  score += Math.max(0, 30 - expRatio * 30)
-  if(transactions.length > 5) score += 15
-  if(transactions.length > 20) score += 10
-  if(isPro()) score += 5
-  return Math.min(100, Math.round(score))
+  if(income === 0) return { total: 0, breakdown: [] }
+
+  const savRate   = Math.max(0, (income - expenses) / income)
+  const expRatio  = Math.min(1, expenses / income)
+  const gastos    = transactions.filter(t => t.type === 'gasto')
+  const goals     = JSON.parse(localStorage.getItem('pec_goals')||'[]')
+
+  // Puntuación ahorro (0-30)
+  let savScore = 0
+  if(savRate >= 0.30) savScore = 30
+  else if(savRate >= 0.20) savScore = 25
+  else if(savRate >= 0.10) savScore = 15
+  else if(savRate > 0)     savScore = 5
+
+  // Control de gastos (0-25) — relación ingresos/gastos
+  const ctrlScore = Math.round(Math.max(0, 25 - expRatio * 25))
+
+  // Seguimiento activo (0-20) — cuántos movimientos registra
+  let trackScore = 0
+  if(transactions.length >= 30)     trackScore = 20
+  else if(transactions.length >= 15) trackScore = 15
+  else if(transactions.length >= 5)  trackScore = 10
+  else if(transactions.length >= 1)  trackScore = 5
+
+  // Objetivos (0-15) — tiene objetivos y están avanzando
+  let goalScore = 0
+  if(goals.length > 0){
+    goalScore = 8
+    const avgPct = goals.reduce((s,g) => s + (g.saved/Math.max(1,g.target)), 0) / goals.length
+    if(avgPct >= 0.5) goalScore = 15
+    else if(avgPct >= 0.2) goalScore = 12
+  }
+
+  // Diversificación (0-10) — no concentra >60% en una sola categoría
+  let divScore = 10
+  if(gastos.length > 0){
+    const totCat = {}
+    gastos.forEach(t => { totCat[t.cat] = (totCat[t.cat]||0) + parseFloat(t.amount) })
+    const totalG = gastos.reduce((s,t) => s + parseFloat(t.amount), 0)
+    const topPct  = totalG > 0 ? Math.max(...Object.values(totCat)) / totalG : 0
+    if(topPct > 0.7) divScore = 0
+    else if(topPct > 0.5) divScore = 5
+  }
+
+  const total = Math.min(100, savScore + ctrlScore + trackScore + goalScore + divScore)
+  return {
+    total: Math.round(total),
+    breakdown: [
+      { label:'Tasa de ahorro',  score: savScore,  max:30, detail:`${Math.round(savRate*100)}% ahorro` },
+      { label:'Control gastos',  score: ctrlScore, max:25, detail:`${Math.round(expRatio*100)}% sobre ingresos` },
+      { label:'Seguimiento',     score: trackScore,max:20, detail:`${transactions.length} movimientos` },
+      { label:'Objetivos',       score: goalScore, max:15, detail: goals.length ? `${goals.length} objetivo${goals.length>1?'s':''}` : 'Sin objetivos' },
+      { label:'Diversificación', score: divScore,  max:10, detail: divScore===10 ? 'Equilibrado' : 'Concentrado' }
+    ]
+  }
 }
 
 function renderHealthScore(){
-  const score = calcHealthScore()
+  const { total: score, breakdown } = calcHealthScore()
   const numEl = document.getElementById('health-num')
   const arcEl = document.getElementById('health-arc')
   const statusEl = document.getElementById('health-status')
@@ -2696,23 +2808,26 @@ function renderHealthScore(){
   if(arcEl) setTimeout(()=>{ arcEl.style.strokeDashoffset = offset }, 200)
 
   let status, sub, color
-  if(score >= 75){ status='Excelente'; sub='Tus finanzas están en muy buen estado'; color='#4ade80' }
-  else if(score >= 55){ status='Buena'; sub='Hay margen de mejora en el ahorro'; color='#f5c842' }
-  else if(score >= 35){ status='Regular'; sub='Revisa tus gastos con la IA'; color='#fb923c' }
+  if(score >= 80){ status='Excelente'; sub='Tus finanzas están en muy buen estado'; color='#4ade80' }
+  else if(score >= 60){ status='Buena'; sub='Buen control, hay margen de mejora'; color='#a3e635' }
+  else if(score >= 40){ status='Regular'; sub='Revisa el ahorro y el seguimiento'; color='#fb923c' }
   else if(score > 0){ status='Mejorable'; sub='Empieza añadiendo tus movimientos'; color='#f87171' }
   else { status='Sin datos'; sub='Añade ingresos y gastos para calcular'; color='#6b7280' }
 
   if(statusEl){ statusEl.textContent = status; statusEl.style.color = color }
   if(subEl) subEl.textContent = sub
 
-  const income = user.income || 0
-  const expenses = user.expenses || 0
-  const savRate = income > 0 ? Math.round(((income-expenses)/income)*100) : 0
-  if(barsEl) barsEl.innerHTML = `
-    <div class="hbar-row"><div class="hbar-label">Ahorro</div><div class="hbar-track"><div class="hbar-fill" style="width:${Math.min(100,savRate)}%"></div></div><div class="hbar-val">${savRate}%</div></div>
-    <div class="hbar-row"><div class="hbar-label">Control</div><div class="hbar-track"><div class="hbar-fill" style="width:${Math.min(100,transactions.length*5)}%"></div></div><div class="hbar-val">${Math.min(100,transactions.length*5)}%</div></div>
-    <div class="hbar-row"><div class="hbar-label">Plan</div><div class="hbar-track"><div class="hbar-fill" style="width:${isPro()?100:isFinanciero()?100:20}%"></div></div><div class="hbar-val">${isPro()||isFinanciero()?'Pro':'Free'}</div></div>
-  `
+  if(barsEl && breakdown.length){
+    barsEl.innerHTML = breakdown.map(b => {
+      const pct = Math.round((b.score / b.max) * 100)
+      const barColor = pct >= 80 ? '#4ade80' : pct >= 50 ? '#f5c842' : '#f87171'
+      return `<div class="hbar-row">
+        <div class="hbar-label" style="min-width:110px">${b.label}</div>
+        <div class="hbar-track"><div class="hbar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+        <div class="hbar-val" style="min-width:90px;text-align:right">${b.score}/${b.max} · <span style="color:var(--text2);font-size:10px">${b.detail}</span></div>
+      </div>`
+    }).join('')
+  }
 }
 
 // ─── CATEGORY CHART ───────────────────────────────────────
@@ -2752,30 +2867,90 @@ function generateSmartAlerts(){
   const alertsEl = document.getElementById('smart-alerts')
   if(!alertsEl) return
   const alerts = []
-  const income = user?.income || 0
+  const income   = user?.income || 0
   const expenses = user?.expenses || 0
-  const savRate = income > 0 ? Math.round(((income-expenses)/income)*100) : 0
-  const gastos = transactions.filter(t=>t.type==='gasto')
-  const totalGastos = gastos.reduce((s,t)=>s+parseFloat(t.amount),0)
+  const savRate  = income > 0 ? Math.round(((income-expenses)/income)*100) : 0
 
-  if(savRate < 10 && income > 0) alerts.push({ type:'warn', icon:'⚠️', title:'Tasa de ahorro muy baja', text:`Solo ahorras el ${savRate}% de tus ingresos. Lo recomendado es mínimo el 20%.` })
-  if(expenses > income * 0.9 && income > 0) alerts.push({ type:'warn', icon:'🔴', title:'Gastos elevados', text:`Tus gastos (${expenses.toLocaleString('es-ES')} €) representan más del 90% de tus ingresos.` })
-  if(transactions.length === 0) alerts.push({ type:'info', icon:'💡', title:'Añade tus movimientos', text:'Cuantos más datos tengas, más precisos serán los análisis de la IA.' })
-  if(transactions.length > 3){
-    const totals = {}
-    gastos.forEach(t=>{ totals[t.cat]=(totals[t.cat]||0)+parseFloat(t.amount) })
-    const topCat = Object.entries(totals).sort((a,b)=>b[1]-a[1])[0]
+  const thisMonth   = getMonthlyStats(0)
+  const lastMonth   = getMonthlyStats(-1)
+  const twoMonthsAgo = getMonthlyStats(-2)
+  const gastos      = transactions.filter(t => t.type==='gasto')
+  const totalGastos = gastos.reduce((s,t) => s+parseFloat(t.amount), 0)
+
+  // Sin datos
+  if(transactions.length === 0){
+    alerts.push({ type:'info', icon:'💡', title:'Añade tus primeros movimientos', text:'Cuantos más datos registres, más precisos serán los análisis y las alertas.' })
+  }
+
+  // Ahorro bajo
+  if(savRate < 10 && income > 0)
+    alerts.push({ type:'warn', icon:'⚠️', title:'Tasa de ahorro muy baja', text:`Solo ahorras el ${savRate}% de tus ingresos. El mínimo recomendado es el 20%.` })
+
+  // Gastos > 90% ingresos
+  if(expenses > income * 0.9 && income > 0)
+    alerts.push({ type:'danger', icon:'🔴', title:'Gastos casi igualan ingresos', text:`Tus gastos declarados (${expenses.toLocaleString('es-ES')} €) son el ${Math.round(expenses/income*100)}% de tus ingresos. Margen de ahorro crítico.` })
+
+  // Tendencia gastos al alza este mes vs anterior
+  if(lastMonth.totalGastos > 0 && thisMonth.totalGastos > 0){
+    const diff = Math.round(((thisMonth.totalGastos - lastMonth.totalGastos) / lastMonth.totalGastos) * 100)
+    if(diff >= 15)
+      alerts.push({ type:'warn', icon:'📈', title:`Gastos +${diff}% vs mes anterior`, text:`Este mes llevas ${thisMonth.totalGastos.toLocaleString('es-ES')} € en gastos vs ${lastMonth.totalGastos.toLocaleString('es-ES')} € el mes pasado. Revisa qué categoría ha subido.` })
+  }
+
+  // Tendencia ahorro cayendo 3 meses seguidos
+  const s0 = twoMonthsAgo.totalIngresos - twoMonthsAgo.totalGastos
+  const s1 = lastMonth.totalIngresos - lastMonth.totalGastos
+  const s2 = thisMonth.totalIngresos - thisMonth.totalGastos
+  if(s0 > 0 && s1 < s0 && s2 < s1)
+    alerts.push({ type:'warn', icon:'📉', title:'Ahorro cayendo 3 meses seguidos', text:`Tu ahorro lleva bajando: ${s0.toLocaleString('es-ES')} € → ${s1.toLocaleString('es-ES')} € → ${s2.toLocaleString('es-ES')} €. Analiza con la IA qué está pasando.` })
+
+  // Categoría dispara gastos
+  if(gastos.length > 3){
+    const totCat = {}
+    gastos.forEach(t => { totCat[t.cat]=(totCat[t.cat]||0)+parseFloat(t.amount) })
+    const topCat = Object.entries(totCat).sort((a,b) => b[1]-a[1])[0]
     if(topCat && totalGastos > 0){
       const pct = Math.round((topCat[1]/totalGastos)*100)
-      if(pct > 40) alerts.push({ type:'warn', icon:'📊', title:`${pct}% en ${topCat[0]}`, text:`El ${pct}% de tus gastos son en ${topCat[0]} (${topCat[1].toLocaleString('es-ES')} €). Considera si puedes reducirlo.` })
+      if(pct > 45)
+        alerts.push({ type:'warn', icon:'📊', title:`${pct}% del gasto en ${topCat[0]}`, text:`${topCat[1].toLocaleString('es-ES')} € solo en ${topCat[0]}. Concentrar tanto en una categoría es un riesgo. ¿Puedes reducirlo?` })
     }
   }
-  if(savRate >= 20 && income > 0) alerts.push({ type:'good', icon:'✅', title:'¡Buen ritmo de ahorro!', text:`Ahorras el ${savRate}% de tus ingresos. Considera invertir el excedente.` })
 
-  alertsEl.innerHTML = alerts.map(a=>`
-    <div class="alert alert-${a.type==='good'?'info':'warn'}" style="${a.type==='good'?'background:var(--green-bg);border-color:#bbf7d0':''}">
-      <div class="alert-icon" style="${a.type==='good'?'background:#dcfce7':''}"><span style="font-size:18px">${a.icon}</span></div>
-      <div class="alert-text"><strong>${a.title}</strong><span>${a.text}</span></div>
+  // Categoría subió >30% vs mes anterior
+  if(thisMonth.count > 0 && lastMonth.count > 0){
+    Object.entries(thisMonth.catTotals).forEach(([cat, amt]) => {
+      const prev = lastMonth.catTotals[cat] || 0
+      if(prev > 0){
+        const diff = Math.round(((amt - prev) / prev) * 100)
+        if(diff >= 30)
+          alerts.push({ type:'warn', icon:'🔍', title:`${cat} subió un ${diff}%`, text:`Has gastado ${amt.toLocaleString('es-ES')} € en ${cat} este mes vs ${prev.toLocaleString('es-ES')} € el mes pasado.` })
+      }
+    })
+  }
+
+  // Suscripciones detectadas
+  const subs = detectSubscriptions()
+  if(subs.length >= 2)
+    alerts.push({ type:'info', icon:'🔄', title:`${subs.length} pagos recurrentes detectados`, text:`Detectamos ${subs.length} gastos que se repiten: ${subs.slice(0,2).map(s=>`"${s.name}" (${s.avgAmount}€)`).join(', ')}${subs.length>2?'…':''}. ¿Los necesitas todos?` })
+
+  // Buen ritmo de ahorro
+  if(savRate >= 20 && income > 0)
+    alerts.push({ type:'good', icon:'✅', title:`¡Ahorrando el ${savRate}%!`, text:`Superas el 20% recomendado. Considera invertir el excedente en fondos indexados.` })
+
+  // Sin alertas
+  if(!alerts.length)
+    alerts.push({ type:'good', icon:'🎯', title:'Todo en orden', text:'No detectamos ninguna alerta financiera. Sigue así y añade más movimientos para análisis más precisos.' })
+
+  const styles = {
+    warn:   'background:rgba(251,146,60,.08);border-color:#fb923c',
+    danger: 'background:rgba(248,113,113,.08);border-color:#f87171',
+    info:   'background:var(--surface);border-color:var(--border)',
+    good:   'background:rgba(74,222,128,.08);border-color:#4ade80'
+  }
+  alertsEl.innerHTML = alerts.slice(0,5).map(a=>`
+    <div class="alert" style="display:flex;gap:12px;padding:12px 14px;border-radius:12px;border:1px solid;margin-bottom:8px;${styles[a.type]||styles.info}">
+      <div style="font-size:20px;flex-shrink:0;margin-top:1px">${a.icon}</div>
+      <div><div style="font-size:12px;font-weight:700;margin-bottom:2px">${a.title}</div><div style="font-size:11px;color:var(--text2);line-height:1.5">${a.text}</div></div>
     </div>`).join('')
 }
 
@@ -2841,11 +3016,11 @@ function renderInsights(){
 const LEGAL_CONTENT = {
   privacidad: {
     title:'Política de privacidad',
-    html:`<div class="legal-section"><h3>1. Responsable del tratamiento</h3><p>Pecunia es un servicio operado por Jonathan Díaz (jonathandiaz2008pro@gmail.com). Los datos se almacenan en Supabase (servidores EU).</p></div>
+    html:`<div class="legal-section"><h3>1. Responsable del tratamiento</h3><p>Pecunia es un servicio operado por Jonathan Díaz (jonathandiaz2008pro@gmail.com). Los datos se almacenan en Firebase (servidores EU).</p></div>
     <div class="legal-section"><h3>2. Datos que recogemos</h3><p>Recogemos exclusivamente: email, nombre, situación laboral, ingresos/gastos mensuales y movimientos que tú introduces. No vendemos ni compartimos tus datos con terceros.</p></div>
     <div class="legal-section"><h3>3. Finalidad</h3><p>Tus datos se usan únicamente para ofrecerte el servicio de asesoramiento financiero personalizado con IA.</p></div>
     <div class="legal-section"><h3>4. Tus derechos</h3><p>Puedes solicitar la eliminación de tus datos en cualquier momento escribiendo a jonathandiaz2008pro@gmail.com. Responderemos en menos de 72 horas.</p></div>
-    <div class="legal-section"><h3>5. Seguridad</h3><p>Usamos cifrado TLS, autenticación segura de Supabase y Row Level Security para que nadie más pueda acceder a tus datos.</p></div>`
+    <div class="legal-section"><h3>5. Seguridad</h3><p>Usamos cifrado TLS, autenticación segura de Firebase y reglas de seguridad por usuario para que nadie más pueda acceder a tus datos.</p></div>`
   },
   terminos: {
     title:'Términos y condiciones',
@@ -2856,12 +3031,12 @@ const LEGAL_CONTENT = {
   },
   faq: {
     title:'Preguntas frecuentes',
-    html:`<div class="faq-item"><div class="faq-q">¿Mis datos financieros están seguros?</div><div class="faq-a">Sí. Usamos Supabase con cifrado TLS y Row Level Security. Solo tú puedes ver tus datos.</div></div>
+    html:`<div class="faq-item"><div class="faq-q">¿Mis datos financieros están seguros?</div><div class="faq-a">Sí. Usamos Firebase con cifrado TLS y reglas de seguridad por usuario. Solo tú puedes ver tus datos.</div></div>
     <div class="faq-item"><div class="faq-q">¿Cómo se activa el plan Pro o Financiero?</div><div class="faq-a">Pagas vía PayPal y en menos de 24 h activamos tu plan manualmente. Te notificamos por email.</div></div>
     <div class="faq-item"><div class="faq-q">¿Puedo cancelar mi suscripción?</div><div class="faq-a">Sí, en cualquier momento. Escríbenos a jonathandiaz2008pro@gmail.com y cancelamos sin preguntas.</div></div>
     <div class="faq-item"><div class="faq-q">¿La IA es un asesor fiscal real?</div><div class="faq-a">No. La IA ofrece orientación basada en tu perfil, pero no sustituye a un asesor fiscal colegiado. Para decisiones importantes, consulta con un profesional.</div></div>
     <div class="faq-item"><div class="faq-q">¿Funciona para empleados y autónomos?</div><div class="faq-a">Sí. Pecunia tiene funciones específicas para autónomos (IVA, IRPF, modelos) y para empleados (declaración de la renta, ahorro e inversión).</div></div>
-    <div class="faq-item"><div class="faq-q">¿Dónde se almacenan mis datos?</div><div class="faq-a">En servidores de Supabase ubicados en la Unión Europea (París, Francia), cumpliendo con el RGPD.</div></div>`
+    <div class="faq-item"><div class="faq-q">¿Dónde se almacenan mis datos?</div><div class="faq-a">En servidores de Firebase (Google Cloud) ubicados en la Unión Europea, cumpliendo con el RGPD.</div></div>`
   },
   contacto: {
     title:'Contacto y soporte',
