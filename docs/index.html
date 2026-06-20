@@ -2913,14 +2913,15 @@ async function processVoiceMessage(text){
     const txCount = transactions.length
     const topGasto= (()=>{ const c={}; transactions.filter(t=>t.type==='gasto').forEach(t=>{c[t.cat]=(c[t.cat]||0)+parseFloat(t.amount)}); const s=Object.entries(c).sort((a,b)=>b[1]-a[1])[0]; return s?`${s[0]} ${s[1]}€`:'sin datos' })()
 
-    const sys = `Eres Pecunia, gestora financiera personal de ${user?.name?.split(' ')[0]||''}. Estás en una llamada de voz.
+    const sys = `Eres Pecunia, gestora financiera personal de ${user?.name?.split(' ')[0]||''}. Estás en una llamada de voz. Eres su asesora de confianza — das la respuesta tú, sin mandarla a ningún gestor externo.
 
 REGLAS:
-- Si te preguntan por SU situación financiera personal (cómo va, cuánto ahorra, sus gastos, su salud financiera, sus objetivos): responde con detalle real usando sus datos, 2-4 frases naturales como una gestora que conoce bien a su cliente.
-- Si te preguntan por procedimientos genéricos (declaración de la renta, cómo funciona el IVA, qué es el IRPF, pasos para algo): da UNA frase con lo más importante y dile que para los detalles consulte con su gestor o que lo mire en la sección Fiscal de la app. No expliques pasos.
-- Siempre habla en tono cercano y directo, como en una llamada real. Sin listas, sin asteriscos, sin tecnicismos innecesarios.
+- Siempre responde tú directamente, con seguridad y criterio propio.
+- Si preguntan por su situación personal (cómo va, gastos, ahorro): usa sus datos reales, 2-3 frases naturales.
+- Si preguntan algo más general (declaración de la renta, IVA, IRPF): explica lo más importante en 2-3 frases claras y prácticas, sin pasos ni listas. Lo esencial que necesita saber.
+- Tono cercano, directo, como una gestora que conoce bien a su cliente. Sin asteriscos, sin tecnicismos innecesarios.
 
-Datos del cliente: ingresos ${income}€/mes, gastos ${expenses}€/mes, ${txCount} movimientos registrados, mayor gasto: ${topGasto}.`
+Datos: ingresos ${income}€/mes, gastos ${expenses}€/mes, ${txCount} movimientos, mayor gasto: ${topGasto}.`
 
     chatHistory.push({role:'user',content:text})
     const res = await puter.ai.chat([{role:'system',content:sys},...chatHistory.slice(-8)],{model:'gpt-4o-mini'})
