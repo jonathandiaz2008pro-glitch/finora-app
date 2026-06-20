@@ -669,6 +669,51 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,s
 @keyframes td{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)}}
 
 /* HEALTH SCORE */
+/* ── DASHBOARD HERO ── */
+.dash-hero{background:linear-gradient(145deg,#0c0c0c 0%,#111 60%,#0e0e0e 100%);border:1px solid #1e1e1e;border-radius:var(--r);padding:20px;margin-bottom:10px;position:relative;overflow:hidden}
+.dash-hero::after{content:'';position:absolute;top:-80px;right:-80px;width:240px;height:240px;background:radial-gradient(circle,rgba(201,168,76,.07) 0%,transparent 65%);pointer-events:none}
+.dash-hero-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.dash-hero-label{font-size:10px;font-weight:700;color:#4b5563;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.dash-hero-amount{font-size:38px;font-weight:800;color:#fff;letter-spacing:-1.5px;line-height:1;font-variant-numeric:tabular-nums}
+.dash-hero-sub{font-size:12px;color:#6b7280;margin-top:5px}
+.dash-health-ring{position:relative;flex-shrink:0}
+.dash-health-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.dash-health-num{font-size:16px;font-weight:800;color:#fff;line-height:1}
+.dash-health-lbl{font-size:8px;color:#4b5563;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-top:1px}
+.dash-hero-status{font-size:13px;font-weight:700;color:var(--gold-light);margin-bottom:12px}
+.dash-hero-bar-wrap{margin-top:2px}
+.dash-hero-bar-labels{display:flex;justify-content:space-between;font-size:11px;color:#6b7280;margin-bottom:5px}
+.dash-hero-bar-labels strong{color:#9ca3af}
+.dash-hero-bar-track{height:3px;background:#1e1e1e;border-radius:3px;overflow:hidden}
+.dash-hero-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--gold),var(--gold-light));transition:width 1s ease}
+
+/* ── ALERTA ACTIVA ── */
+.active-alert{display:flex;align-items:center;gap:12px;border-radius:14px;padding:13px 14px;margin-bottom:10px;border:1px solid}
+.active-alert.danger{background:rgba(239,68,68,.07);border-color:rgba(239,68,68,.2)}
+.active-alert.warn{background:rgba(245,200,66,.07);border-color:rgba(245,200,66,.2)}
+.active-alert.good{background:rgba(74,222,128,.07);border-color:rgba(74,222,128,.2)}
+.active-alert-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0}
+.active-alert.danger .active-alert-icon{background:rgba(239,68,68,.15);color:#f87171}
+.active-alert.warn .active-alert-icon{background:rgba(245,200,66,.15);color:var(--gold-light)}
+.active-alert.good .active-alert-icon{background:rgba(74,222,128,.15);color:#4ade80}
+.active-alert-body{flex:1;min-width:0}
+.active-alert-title{font-size:13px;font-weight:700;color:#fff;margin-bottom:2px;line-height:1.3}
+.active-alert-sub{font-size:11px;color:#6b7280;line-height:1.4}
+.active-alert-btn{font-family:inherit;font-size:11px;font-weight:700;background:none;border:1px solid #2a2a2a;border-radius:8px;color:#9ca3af;padding:5px 10px;cursor:pointer;white-space:nowrap;flex-shrink:0}
+
+/* ── TIP / ANÁLISIS CARD ── */
+.tip-card{background:#0d0d0d;border:1px solid #1e1e1e;border-radius:var(--r);padding:14px 16px;margin-bottom:10px}
+.tip-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.tip-badge{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:.7px}
+.tip-body{font-size:13.5px;line-height:1.65;color:#d1d5db}
+.tip-body strong{color:#fff;font-weight:700}
+.tip-ask-btn{width:100%;margin-top:12px;background:none;border:1px solid #1e1e1e;border-radius:10px;color:#6b7280;font-family:inherit;font-size:12px;font-weight:700;padding:9px;cursor:pointer;text-align:left;transition:.2s}
+.tip-ask-btn:hover{border-color:rgba(201,168,76,.3);color:var(--gold)}
+
+/* ── SALUD DETALLADA ── */
+.health-detail-card{background:#0d0d0d;border:1px solid #1e1e1e;border-radius:var(--r);padding:14px 16px;margin-bottom:10px}
+.hd-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+
 /* ── CENTRO DE INTELIGENCIA FINANCIERA ── */
 .intel-center{background:linear-gradient(135deg,#0a0a0a 0%,#111 50%,#0d0d0d 100%);border:1px solid rgba(201,168,76,.25);border-radius:var(--r);padding:16px;margin-bottom:12px;position:relative;overflow:hidden}
 .intel-center::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at top left,rgba(201,168,76,.08) 0%,transparent 60%);pointer-events:none}
@@ -1202,101 +1247,77 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,s
       <!-- INICIO -->
       <div class="sec on" id="sec-inicio">
 
-        <!-- CENTRO DE INTELIGENCIA FINANCIERA -->
-        <div class="intel-center" id="intel-center">
-          <div class="intel-center-head">
-            <div class="intel-badge"><div class="intel-badge-dot"></div>Centro de Inteligencia Financiera</div>
-            <button class="intel-refresh-btn" id="intel-refresh-btn" onclick="renderIntelCenter(true)">↻ Actualizar</button>
-          </div>
-          <div id="intel-narrative" class="intel-narrative">
-            <div class="intel-skeleton">
-              <div class="intel-skel-line w90"></div>
-              <div class="intel-skel-line w80"></div>
-              <div class="intel-skel-line w60"></div>
+        <!-- ① HERO: Salud + Dinero disponible -->
+        <div class="dash-hero" id="money-hero">
+          <div class="dash-hero-top">
+            <div class="dash-hero-left">
+              <div class="dash-hero-label">Disponible este mes</div>
+              <div class="dash-hero-amount" id="money-hero-amount">— €</div>
+              <div class="dash-hero-sub" id="money-hero-sub">Cargando...</div>
+            </div>
+            <div class="dash-health-ring">
+              <svg viewBox="0 0 72 72" width="72" height="72">
+                <circle cx="36" cy="36" r="30" fill="none" stroke="#1e1e1e" stroke-width="5"/>
+                <circle cx="36" cy="36" r="30" fill="none" stroke="url(#hg2)" stroke-width="5"
+                  stroke-dasharray="188" id="health-arc" stroke-dashoffset="188"
+                  stroke-linecap="round" transform="rotate(-90 36 36)"/>
+                <defs><linearGradient id="hg2" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#c9a84c"/><stop offset="100%" stop-color="#f5c842"/>
+                </linearGradient></defs>
+              </svg>
+              <div class="dash-health-inner">
+                <div class="dash-health-num" id="health-num">—</div>
+                <div class="dash-health-lbl">salud</div>
+              </div>
             </div>
           </div>
-          <div id="intel-chips" class="intel-chips"></div>
-        </div>
-
-        <!-- Streak bar -->
-        <div class="streak-bar" id="streak-bar" style="display:none">
-          <div class="streak-fire">🔥</div>
-          <div class="streak-text">
-            <div class="streak-title">Racha activa</div>
-            <div class="streak-sub" id="streak-sub">Llevas días usando Pecunia</div>
-          </div>
-          <div class="streak-count" id="streak-count">0</div>
-        </div>
-
-        <!-- Dinero disponible hero -->
-        <div class="money-hero" id="money-hero">
-          <div class="money-hero-row">
-            <div>
-              <div class="money-hero-label">Disponible este mes</div>
-              <div class="money-hero-amount" id="money-hero-amount">— €</div>
-              <div class="money-hero-sub" id="money-hero-sub">Calculando...</div>
+          <div class="dash-hero-status" id="health-status">Sin datos aún</div>
+          <div class="dash-hero-bar-wrap">
+            <div class="dash-hero-bar-labels">
+              <span id="money-hero-sub2">Mes en curso</span>
+              <span id="money-hero-pred-wrap">Fin de mes: <strong id="money-hero-pred">—</strong></span>
             </div>
-            <div class="money-hero-right">
-              <div class="money-hero-pred">Fin de mes</div>
-              <div class="money-hero-pred-val" id="money-hero-pred">— €</div>
+            <div class="dash-hero-bar-track">
+              <div class="dash-hero-bar-fill" id="money-hero-bar" style="width:0%"></div>
             </div>
-          </div>
-          <div class="money-hero-progress">
-            <div class="money-hero-progress-fill" id="money-hero-bar" style="width:0%"></div>
           </div>
         </div>
 
-        <!-- Resumen mensual (3 cols) -->
+        <!-- ② ALERTA ACTIVA (instantánea, sin IA) -->
+        <div class="active-alert" id="active-alert" style="display:none">
+          <div class="active-alert-icon" id="alert-icon">!</div>
+          <div class="active-alert-body">
+            <div class="active-alert-title" id="alert-title">—</div>
+            <div class="active-alert-sub" id="alert-sub">—</div>
+          </div>
+          <button class="active-alert-btn" id="alert-btn" onclick="alertAction()">Ver</button>
+        </div>
+
+        <!-- ③ STATS 3 COLS -->
         <div class="month-summary-row" id="month-summary-row">
           <div class="ms-card"><div class="ms-label">Ingresos</div><div class="ms-val pos" id="st-income">— €</div></div>
           <div class="ms-card"><div class="ms-label">Gastos</div><div class="ms-val neg" id="st-expenses">— €</div></div>
           <div class="ms-card"><div class="ms-label">Ahorro</div><div class="ms-val" id="st-benefit">— €</div></div>
         </div>
 
-        <!-- AUTO-INSIGHTS ENGINE -->
-        <div class="insights-engine" id="insights-engine">
-          <div class="insights-engine-head">
-            <div class="insights-engine-title">
-              <div class="insights-engine-dot"></div>
-              Análisis IA
-            </div>
-            <button class="insights-engine-link" onclick="goTo('asesor',document.querySelectorAll('.nav-btn')[1])">Ver todo →</button>
+        <!-- ④ ANÁLISIS IA + CONSEJO (cargado en bg, cached) -->
+        <div class="tip-card" id="tip-card">
+          <div class="tip-card-head">
+            <div class="tip-badge"><div class="intel-badge-dot"></div>Análisis de Pecunia</div>
+            <button class="intel-refresh-btn" onclick="renderDailyTip(true)">↻</button>
           </div>
-          <div id="auto-insights-list">
-            <div class="insight-row">
-              <div class="insight-row-icon gold">💡</div>
-              <div class="insight-row-body">
-                <div class="insight-row-label">Pecunia IA</div>
-                <div class="insight-row-title">Añade tus primeros movimientos</div>
-                <div class="insight-row-sub">Con 3+ datos te genero un análisis completo automáticamente</div>
-              </div>
+          <div id="tip-body" class="tip-body">
+            <div class="intel-skeleton" style="gap:7px">
+              <div class="intel-skel-line w90"></div>
+              <div class="intel-skel-line w75"></div>
+              <div class="intel-skel-line w55"></div>
             </div>
           </div>
-          <div class="insights-engine-footer">
-            <input class="insights-ask-btn" id="home-inp" placeholder="Pregunta a tu asesor financiero..." onkeydown="if(event.key==='Enter')sendHomeMsg()" readonly onclick="goTo('asesor',document.querySelectorAll('.nav-btn')[1])">
-            <button class="insights-send-btn" onclick="goTo('asesor',document.querySelectorAll('.nav-btn')[1])">
-              <svg viewBox="0 0 16 16"><path d="M14 8H2M14 8l-5-5M14 8l-5 5"/></svg>
-            </button>
-          </div>
+          <div id="tip-chips" class="intel-chips" style="margin-top:10px"></div>
+          <button class="tip-ask-btn" onclick="goTo('asesor',document.querySelectorAll('.nav-btn')[1])">Preguntar a Pecunia →</button>
         </div>
 
-        <!-- Health Score -->
-        <div class="health-card" id="health-card">
-          <div class="health-label">Salud financiera</div>
-          <div class="health-row">
-            <div class="health-score-circle">
-              <svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="none" stroke="#2a2a2a" stroke-width="5"/><circle cx="32" cy="32" r="28" fill="none" stroke="url(#goldGrad)" stroke-width="5" stroke-dasharray="176" id="health-arc" stroke-dashoffset="176" stroke-linecap="round"/><defs><linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#c9a84c"/><stop offset="100%" stop-color="#f5c842"/></linearGradient></defs></svg>
-              <div class="health-score-num" id="health-num">—</div>
-            </div>
-            <div class="health-details">
-              <div class="health-status" id="health-status">Sin datos aún</div>
-              <div class="health-sub" id="health-sub">Añade movimientos para calcular</div>
-            </div>
-          </div>
-          <div class="health-bars" id="health-bars"></div>
-        </div>
-
-        <!-- PREDICCIÓN FIN DE MES -->
+        <!-- ⑤ PREDICCIÓN FIN DE MES (compacta) -->
         <div class="pred-card" id="pred-card">
           <div class="pred-head">
             <div class="pred-title">Predicción fin de mes</div>
@@ -1304,11 +1325,11 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,s
           </div>
           <div class="pred-cols">
             <div class="pred-col">
-              <div class="pred-col-label">Gastos previstos</div>
+              <div class="pred-col-label">Gastos prev.</div>
               <div class="pred-col-val neg" id="pred-gastos">— €</div>
             </div>
             <div class="pred-col">
-              <div class="pred-col-label">Ahorro previsto</div>
+              <div class="pred-col-label">Ahorro prev.</div>
               <div class="pred-col-val" id="pred-ahorro">— €</div>
             </div>
             <div class="pred-col">
@@ -1316,31 +1337,23 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,s
               <div class="pred-col-val neutral" id="pred-disp">— €</div>
             </div>
           </div>
-          <div class="pred-bar-wrap">
-            <div class="pred-bar-label"><span>Gasto del mes</span><span id="pred-bar-pct">0%</span></div>
+          <div class="pred-bar-wrap" style="margin-top:10px">
+            <div class="pred-bar-label"><span>Ritmo de gasto</span><span id="pred-bar-pct">0%</span></div>
             <div class="pred-bar-track"><div class="pred-bar-fill safe" id="pred-bar-fill" style="width:0%"></div></div>
           </div>
-          <div style="display:flex;gap:8px;margin-top:10px">
-            <button class="pred-sim-btn" onclick="openSimulator()">Simulador financiero →</button>
-            <button class="pred-sim-btn" style="flex:0 0 auto;padding:9px 14px" onclick="openWeeklyReport()">Informe semanal</button>
+        </div>
+
+        <!-- ⑥ SALUD DETALLE (barras breakdown) -->
+        <div class="health-detail-card" id="health-detail-card">
+          <div class="hd-head">
+            <div class="pred-title">Salud financiera detallada</div>
+            <button class="intel-refresh-btn" onclick="openSimulator()">Simular →</button>
           </div>
+          <div class="health-bars" id="health-bars"></div>
+          <div class="health-sub" id="health-sub" style="margin-top:8px;font-size:12px;color:#6b7280"></div>
         </div>
 
-        <!-- ACCIONES RÁPIDAS -->
-        <div class="quick-actions">
-          <div class="quick-action-btn" onclick="openAddModal()"><div class="qa-icon">+</div><div class="qa-label">Añadir</div></div>
-          <div class="quick-action-btn" onclick="openSimulator()"><div class="qa-icon">🎛</div><div class="qa-label">Simular</div></div>
-          <div class="quick-action-btn" onclick="openWeeklyReport()"><div class="qa-icon">📋</div><div class="qa-label">Informe</div></div>
-          <div class="quick-action-btn" onclick="goTo('asesor',document.querySelectorAll('.nav-btn')[1])"><div class="qa-icon">💬</div><div class="qa-label">Asesor</div></div>
-        </div>
-
-        <!-- Categorías -->
-        <div class="card card-pad" id="cat-chart-card" style="display:none">
-          <div class="card-head"><div class="card-title">Gastos por categoría</div><span class="card-link" id="cat-total"></span></div>
-          <div class="cat-chart" id="cat-chart"></div>
-        </div>
-
-        <!-- Objetivos -->
+        <!-- ⑦ OBJETIVOS -->
         <div class="goal-card" id="goals-card" style="display:none">
           <div class="goal-card-head">
             <div class="card-title">Mis objetivos</div>
@@ -1349,10 +1362,34 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,s
           <div id="goals-list"></div>
         </div>
 
-        <!-- Movimientos recientes -->
+        <!-- ⑧ GASTOS POR CATEGORÍA -->
+        <div class="card card-pad" id="cat-chart-card" style="display:none">
+          <div class="card-head"><div class="card-title">Gastos por categoría</div><span class="card-link" id="cat-total"></span></div>
+          <div class="cat-chart" id="cat-chart"></div>
+        </div>
+
+        <!-- ⑨ MOVIMIENTOS RECIENTES -->
         <div class="card card-pad">
-          <div class="card-head"><div class="card-title">Movimientos recientes</div><span class="card-link" onclick="goTo('finanzas',document.querySelectorAll('.nav-btn')[2])">Ver todos</span></div>
-          <div id="tx-list-home"><div style="font-size:13px;color:var(--text2);text-align:center;padding:20px 0;line-height:1.7">Aún no tienes movimientos.<br><span style="color:var(--gold);font-weight:600;cursor:pointer" onclick="openAddModal()">Añade el primero →</span></div></div>
+          <div class="card-head">
+            <div class="card-title">Últimos movimientos</div>
+            <span class="card-link" onclick="goTo('finanzas',document.querySelectorAll('.nav-btn')[2])">Ver todos</span>
+          </div>
+          <div id="tx-list-home">
+            <div style="font-size:13px;color:#4b5563;text-align:center;padding:24px 0;line-height:1.8">
+              Aún no tienes movimientos.<br>
+              <span style="color:var(--gold);font-weight:700;cursor:pointer" onclick="openAddModal()">Añade el primero →</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Streak bar (oculta por defecto) -->
+        <div class="streak-bar" id="streak-bar" style="display:none">
+          <div class="streak-fire">🔥</div>
+          <div class="streak-text">
+            <div class="streak-title">Racha activa</div>
+            <div class="streak-sub" id="streak-sub">Llevas días usando Pecunia</div>
+          </div>
+          <div class="streak-count" id="streak-count">0</div>
         </div>
 
         <!-- Hidden elements referenced by JS (fuera de la vista) -->
@@ -2445,7 +2482,9 @@ function initDashboard(){
 
   renderMonthStats()
   renderEndOfMonthPred()
-  renderIntelCenter()
+  renderActiveAlert()
+  renderDailyTip()
+  checkAutoWeeklyReport()
 
   // Mensaje inicio inteligente con datos reales
   const gastosTx = transactions.filter(t=>t.type==='gasto')
@@ -3431,7 +3470,8 @@ async function saveTransaction(){
   renderMonthStats()
   renderAutoInsights()
   renderEndOfMonthPred()
-  renderIntelCenter()
+  renderActiveAlert()
+  renderDailyTip()
   checkAchievements()
   showToast('Movimiento guardado')
   // Radiografía WOW: aparece la primera vez que el usuario llega a 3 movimientos
@@ -3601,7 +3641,7 @@ function renderHealthScore(){
   if(!numEl) return
 
   numEl.textContent = score || '—'
-  const circumference = 176
+  const circumference = 188
   const offset = circumference - (score / 100) * circumference
   if(arcEl) setTimeout(()=>{ arcEl.style.strokeDashoffset = offset }, 200)
 
@@ -4304,9 +4344,34 @@ function renderGoals(){
   if(!card || !list) return
   if(!isPro() || !goals.length){ card.style.display='none'; return }
   card.style.display='block'
+
+  const income   = user?.income  || 0
+  const expenses = user?.expenses || 0
+  const monthlySaving = Math.max(0, income - expenses)
+
   list.innerHTML = goals.map(g=>{
-    const pct = Math.min(100, Math.round((g.saved/g.target)*100))
+    const pct  = Math.min(100, Math.round((g.saved/g.target)*100))
     const left = Math.max(0, g.target - g.saved)
+    // probability: based on saving rate vs remaining target
+    const monthsNeeded = monthlySaving > 0 ? Math.ceil(left / monthlySaving) : null
+    const daysLeft = g.deadline ? Math.max(0, Math.round((new Date(g.deadline)-new Date())/(1000*3600*24))) : null
+    const monthsLeft = daysLeft != null ? Math.floor(daysLeft/30) : null
+    let prob = 50, probLabel = 'Sin datos', probColor = '#6b7280'
+    if(monthsNeeded != null && monthsLeft != null){
+      if(left <= 0){ prob=100; probLabel='Conseguido'; probColor='#4ade80' }
+      else if(monthsLeft >= monthsNeeded * 1.3){ prob=90; probLabel='Muy probable'; probColor='#4ade80' }
+      else if(monthsLeft >= monthsNeeded){ prob=70; probLabel='Probable'; probColor='#a3e635' }
+      else if(monthsLeft >= monthsNeeded * 0.7){ prob=45; probLabel='Ajustado'; probColor='#fb923c' }
+      else { prob=20; probLabel='Difícil — revisa el objetivo'; probColor='#f87171' }
+    } else if(pct >= 80){ prob=80; probLabel='Muy cerca'; probColor='#a3e635' }
+    else if(monthlySaving <= 0){ prob=10; probLabel='Sin ahorro activo'; probColor='#f87171' }
+
+    const etaStr = monthsNeeded!=null
+      ? monthsNeeded === 0 ? 'Ya alcanzado'
+        : monthsNeeded === 1 ? 'En ~1 mes'
+        : `En ~${monthsNeeded} meses`
+      : ''
+
     return `<div class="goal-item">
       <div class="goal-header">
         <div class="goal-name">${g.name}</div>
@@ -4315,8 +4380,13 @@ function renderGoals(){
           <button class="goal-delete" onclick="deleteGoal(${g.id})">×</button>
         </div>
       </div>
-      <div class="goal-sub">${g.saved.toLocaleString('es-ES')} € de ${g.target.toLocaleString('es-ES')} € · Faltan ${left.toLocaleString('es-ES')} €</div>
+      <div class="goal-sub">${g.saved.toLocaleString('es-ES')} € de ${g.target.toLocaleString('es-ES')} € · Faltan ${left.toLocaleString('es-ES')} €${etaStr?' · '+etaStr:''}</div>
       <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+      <div style="margin-top:6px;display:flex;align-items:center;gap:6px">
+        <div style="width:6px;height:6px;border-radius:50%;background:${probColor};flex-shrink:0"></div>
+        <div style="font-size:11px;color:${probColor};font-weight:700">${probLabel}</div>
+        ${prob<70&&monthlySaving>0?`<div style="font-size:11px;color:#4b5563">· ahorra ${Math.round(left/Math.max(1,monthsLeft||12)).toLocaleString('es-ES')} €/mes para lograrlo</div>`:''}
+      </div>
     </div>`
   }).join('')
 }
@@ -4338,7 +4408,8 @@ async function deleteTransaction(id){
   renderMonthStats()
   renderAutoInsights()
   renderEndOfMonthPred()
-  renderIntelCenter()
+  renderActiveAlert()
+  renderDailyTip()
   showToast('Movimiento eliminado')
 }
 
@@ -4363,6 +4434,169 @@ function getNextFiscalDeadline(){
     }
   }
   return 'Modelo 303 Q4 · 20 enero ' + (y+1)
+}
+
+// ─── ALERTA ACTIVA (instantánea, sin IA) ─────────────────
+let _alertAction = null
+function alertAction(){ if(_alertAction) _alertAction() }
+
+function renderActiveAlert(){
+  const el = document.getElementById('active-alert')
+  if(!el) return
+
+  const now = new Date()
+  const dayN = now.getDate()
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate()
+  const daysLeft = daysInMonth - dayN
+  const ratio = dayN / daysInMonth
+
+  const isCur = t => {
+    const d = t.created_at?.toDate ? t.created_at.toDate() : new Date(t.id||0)
+    return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth()
+  }
+  const moTx   = transactions.filter(isCur)
+  const totalG = moTx.filter(t=>t.type==='gasto').reduce((s,t)=>s+parseFloat(t.amount),0)
+  const totalI = moTx.filter(t=>t.type==='ingreso').reduce((s,t)=>s+parseFloat(t.amount),0)
+  const income = user?.income || totalI || 0
+  const proyG  = ratio > 0.05 ? Math.round(totalG / ratio) : totalG
+  const gastoPct = income > 0 ? Math.round((proyG / income) * 100) : 0
+  const ahorroMes = income - totalG
+
+  let type, icon, title, sub, action
+
+  if(transactions.length === 0){
+    type='warn'; icon='!'
+    title = 'Empieza a registrar tus movimientos'
+    sub = 'Con solo 3 datos Pecunia genera tu primer diagnóstico financiero'
+    action = ()=>openAddModal()
+  } else if(income > 0 && proyG > income){
+    type='danger'; icon='!'
+    title = `Atención: vas a gastar ${(proyG - income).toLocaleString('es-ES')} € más de lo que ingresas`
+    sub = `Proyección a fin de mes: ${proyG.toLocaleString('es-ES')} € de gasto · ingresos: ${income.toLocaleString('es-ES')} €`
+    action = ()=>goTo('asesor',document.querySelectorAll('.nav-btn')[1])
+  } else if(income > 0 && gastoPct > 75 && daysLeft > 8){
+    type='warn'; icon='%'
+    title = `Llevas el ${gastoPct}% del presupuesto gastado y quedan ${daysLeft} días`
+    sub = `Ritmo actual: ${Math.round(totalG/Math.max(1,dayN)).toLocaleString('es-ES')} €/día · reduce para acabar el mes bien`
+    action = ()=>goTo('asesor',document.querySelectorAll('.nav-btn')[1])
+  } else if(income > 0 && ahorroMes >= Math.round(income * 0.2)){
+    type='good'; icon='✓'
+    const savPct = Math.round((ahorroMes/income)*100)
+    title = `Vas muy bien — ahorrando el ${savPct}% este mes`
+    sub = `${ahorroMes.toLocaleString('es-ES')} € de ahorro · por encima del objetivo del 20%`
+    action = ()=>goTo('asesor',document.querySelectorAll('.nav-btn')[1])
+  } else if(daysLeft <= 3 && income > 0){
+    type='warn'; icon='!'
+    title = `Quedan ${daysLeft} días para cerrar el mes`
+    sub = `Ahorro hasta ahora: ${ahorroMes.toLocaleString('es-ES')} € · ${Math.round((ahorroMes/income)*100)}% de tus ingresos`
+    action = ()=>openWeeklyReport()
+  } else if(transactions.length >= 3 && income > 0){
+    type='good'; icon='✓'
+    title = `Todo bajo control · ${daysLeft} días para fin de mes`
+    sub = `Gastado: ${totalG.toLocaleString('es-ES')} € · disponible: ${(income-totalG).toLocaleString('es-ES')} €`
+    action = ()=>openSimulator()
+  } else {
+    el.style.display = 'none'; return
+  }
+
+  _alertAction = action
+  el.className = `active-alert ${type}`
+  el.style.display = 'flex'
+  document.getElementById('alert-icon').textContent = icon
+  document.getElementById('alert-title').textContent = title
+  document.getElementById('alert-sub').textContent = sub
+}
+
+// ─── ANÁLISIS DIARIO (tip card, cached por día + nº tx) ──
+async function renderDailyTip(force=false){
+  const bodyEl  = document.getElementById('tip-body')
+  const chipsEl = document.getElementById('tip-chips')
+  if(!bodyEl) return
+
+  const now   = new Date()
+  const dayN  = now.getDate()
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate()
+  const isCur = t => {
+    const d = t.created_at?.toDate ? t.created_at.toDate() : new Date(t.id||0)
+    return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth()
+  }
+  const moTx   = transactions.filter(isCur)
+  const totalG = moTx.filter(t=>t.type==='gasto').reduce((s,t)=>s+parseFloat(t.amount),0)
+  const totalI = moTx.filter(t=>t.type==='ingreso').reduce((s,t)=>s+parseFloat(t.amount),0)
+  const income = user?.income || totalI || 0
+  const ratio  = dayN / daysInMonth
+  const proyG  = ratio > 0.05 ? Math.round(totalG/ratio) : totalG
+  const ahorro = income - totalG
+
+  // Chips siempre instantáneas
+  const catTotals = {}
+  moTx.filter(t=>t.type==='gasto').forEach(t=>{ catTotals[t.cat]=(catTotals[t.cat]||0)+parseFloat(t.amount) })
+  const topCat = Object.entries(catTotals).sort((a,b)=>b[1]-a[1])[0]
+  const ahorroR = income>0 ? Math.round((ahorro/income)*100) : 0
+  const daysLeft = daysInMonth - dayN
+
+  const chips = []
+  if(topCat) chips.push({ t:'warn', label:`Mayor gasto: ${topCat[0]}` })
+  if(income>0) chips.push({ t: ahorro>=0?'pos':'neg', label:`Ahorro: ${ahorro.toLocaleString('es-ES')} €` })
+  if(proyG > income && income>0) chips.push({ t:'neg', label:'Riesgo: sobrepasar ingresos' })
+  if(ahorroR>=20) chips.push({ t:'pos', label:`Tasa ahorro: ${ahorroR}%` })
+  if(daysLeft<=5) chips.push({ t:'warn', label:`${daysLeft} días para fin de mes` })
+  if(chipsEl) chipsEl.innerHTML = chips.slice(0,3).map(c=>`<span class="intel-chip ${c.t}">${c.label}</span>`).join('')
+
+  if(transactions.length < 2){
+    bodyEl.innerHTML = `Añade tus primeros movimientos y Pecunia analizará tu situación al instante. <strong>Cuantos más datos, más preciso el análisis.</strong>`
+    return
+  }
+
+  const cacheKey = `tip_${user?.id}_${now.toISOString().slice(0,10)}_${transactions.length}`
+  if(!force){
+    const cached = localStorage.getItem(cacheKey)
+    if(cached){ bodyEl.innerHTML = cached; return }
+  }
+
+  bodyEl.innerHTML = `<div class="intel-skeleton" style="gap:7px"><div class="intel-skel-line w90"></div><div class="intel-skel-line w75"></div><div class="intel-skel-line w55"></div></div>`
+
+  try{
+    const subs   = detectSubscriptions()
+    const subsInfo = subs.length>0 ? `${subs.length} suscripciones (${subs.reduce((s,x)=>s+x.total,0)}€/mes). ` : ''
+    const catInfo = topCat ? `Mayor gasto: ${topCat[0]} (${topCat[1].toLocaleString('es-ES')}€). ` : ''
+    const prompt = `Eres Pecunia, asesora financiera personal. Escribe UN análisis financiero directo en 2-3 frases para ${user?.name?.split(' ')[0]||'el usuario'}.
+Datos: ingresos ${income.toLocaleString('es-ES')}€/mes, gastado este mes ${totalG.toLocaleString('es-ES')}€, ahorro actual ${ahorro.toLocaleString('es-ES')}€. ${catInfo}${subsInfo}Proyección fin de mes: ${proyG.toLocaleString('es-ES')}€ de gasto, ${(income-proyG).toLocaleString('es-ES')}€ de ahorro. Día ${dayN} de ${daysInMonth}, quedan ${daysLeft} días.
+Reglas: menciona números concretos de sus datos. Termina con UNA acción específica que puede hacer hoy. Sin emojis. Sin asteriscos. Máximo 3 frases.`
+
+    const res = await puter.ai.chat(prompt, { model:'gpt-4o-mini' })
+    const text = (res?.message?.content || res?.text || String(res)).trim()
+    // bold first sentence for emphasis
+    const sentences = text.split(/(?<=\.)\s+/)
+    const html = sentences.length > 1
+      ? `<strong>${sentences[0]}</strong> ${sentences.slice(1).join(' ')}`
+      : `<strong>${text}</strong>`
+    bodyEl.innerHTML = html
+    localStorage.setItem(cacheKey, html)
+  } catch(e){
+    // rule-based fallback, always useful
+    const fallback = income > 0
+      ? `<strong>Llevas ${totalG.toLocaleString('es-ES')} € gastados este mes</strong>, con una proyección de ${proyG.toLocaleString('es-ES')} € a fin de mes. ${proyG > income ? 'Estás en riesgo de superar tus ingresos — reduce gastos variables esta semana.' : `Tu ahorro previsto es ${(income-proyG).toLocaleString('es-ES')} €. ${ahorroR>=20?'Excelente tasa de ahorro — considera transferir el excedente a una cuenta de inversión.':'Para llegar al 20% de ahorro necesitas reducir '+(Math.round(income*0.2-(income-totalG)).toLocaleString('es-ES'))+' € más este mes.'}`}`
+      : `<strong>Configura tus ingresos mensuales en Perfil</strong> para que Pecunia pueda calcular tu salud financiera y darte recomendaciones personalizadas.`
+    bodyEl.innerHTML = fallback
+    localStorage.setItem(cacheKey, fallback)
+  }
+}
+
+// ─── CHECK AUTO-INFORME SEMANAL ───────────────────────────
+function checkAutoWeeklyReport(){
+  const key = `weekly_report_shown_${user?.id}`
+  const last = localStorage.getItem(key)
+  const now = Date.now()
+  if(!last || (now - parseInt(last)) > 7 * 24 * 3600 * 1000){
+    if(transactions.length >= 3){
+      // Mostrar notificación no-intrusiva (no abrir modal automáticamente)
+      setTimeout(()=>{
+        showToast('Tienes un informe semanal disponible — toca "Informe" para verlo')
+        localStorage.setItem(key, String(now))
+      }, 3000)
+    }
+  }
 }
 
 // ─── CENTRO DE INTELIGENCIA FINANCIERA ───────────────────
@@ -4872,18 +5106,22 @@ function renderMoneyHero(){
   amountEl.style.color = disponible >= 0 ? '#fff' : '#f87171'
 
   if(moTx.length === 0 && !profileIncome){
-    subEl.textContent = `Añade tus ingresos en Perfil · ${daysLeft} días para fin de mes`
+    if(subEl) subEl.textContent = `Configura tus ingresos en Perfil · ${daysLeft} días para fin de mes`
   } else if(moTx.length === 0){
-    subEl.textContent = `Ingresos declarados: ${profileIncome.toLocaleString('es-ES')} € · ${daysLeft} días restantes`
+    if(subEl) subEl.textContent = `Ingresos: ${profileIncome.toLocaleString('es-ES')} € · ${daysLeft} días restantes`
   } else {
     const gDiario = txExpenses / Math.max(1, daysPassed)
-    subEl.textContent = `Ritmo: ${Math.round(gDiario).toLocaleString('es-ES')} €/día · ${daysLeft} días restantes`
+    if(subEl) subEl.textContent = `${Math.round(gDiario).toLocaleString('es-ES')} €/día · ${daysLeft} días restantes`
   }
 
-  predEl.textContent = ahorroProyectado.toLocaleString('es-ES') + ' € ahorro previsto'
-  predEl.style.color = ahorroProyectado >= 0 ? '#4ade80' : '#f87171'
+  if(predEl){
+    predEl.textContent = (ahorroProyectado >= 0 ? '+' : '') + ahorroProyectado.toLocaleString('es-ES') + ' €'
+    predEl.style.color = ahorroProyectado >= 0 ? '#4ade80' : '#f87171'
+  }
 
   const pct = incomeRef > 0 ? Math.min(100, Math.round((txExpenses/incomeRef)*100)) : 0
+  const sub2El = document.getElementById('money-hero-sub2')
+  if(sub2El) sub2El.textContent = `Gasto del mes: ${txExpenses.toLocaleString('es-ES')} €`
   setTimeout(()=>{ if(barEl) barEl.style.width = pct + '%' }, 150)
   if(barEl) barEl.style.background = pct > 90 ? '#f87171' : pct > 70 ? '#fb923c' : 'linear-gradient(90deg,#c9a84c,#f5c842)'
 }
