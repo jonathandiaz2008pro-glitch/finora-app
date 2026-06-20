@@ -2830,11 +2830,21 @@ async function startVAD(){
     src.connect(an)
     const buf = new Uint8Array(an.frequencyBinCount)
     let triggered = false
+    let consecutiveHits = 0
+    const THRESHOLD = 45        // nivel mínimo de volumen
+    const HITS_NEEDED = 8       // ~640ms continuo (8×80ms) antes de interrumpir
     vadInterval = setInterval(()=>{
       if(!voiceActive||callState!=='speaking'){ stopVAD(); return }
       an.getByteFrequencyData(buf)
       const avg = buf.reduce((s,v)=>s+v,0)/buf.length
-      if(avg>35 && !triggered){ triggered=true; stopVAD(); interruptPecunia() }
+      if(avg > THRESHOLD){
+        consecutiveHits++
+        if(consecutiveHits >= HITS_NEEDED && !triggered){
+          triggered = true; stopVAD(); interruptPecunia()
+        }
+      } else {
+        consecutiveHits = 0  // reset si hay silencio entre palabras
+      }
     },80)
   }catch(e){}
 }
